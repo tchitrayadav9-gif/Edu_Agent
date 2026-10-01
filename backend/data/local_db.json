@@ -1,0 +1,608 @@
+{
+  "study_plans": [
+    {
+      "plan_id": "98a6a675-a7e6-41c8-98d1-bbeefb1287d2",
+      "user_id": "test_user_agent",
+      "career_goal": "AI Engineer",
+      "duration_days": 30,
+      "daily_commitment_hours": 2.0,
+      "preferred_time": "Evening",
+      "total_estimated_study_hours": 60.0,
+      "modules": [
+        {
+          "module_name": "Mathematics & Probability Foundation",
+          "days": 5,
+          "focus": "Probability distributions, Bayes Theorem, Linear Algebra for ML, Matrix operations",
+          "milestone": "Solve 15 probability problems & implement Bayes Theorem in Python",
+          "is_weakness_remediation": true
+        },
+        {
+          "module_name": "Machine Learning Core & Scikit-Learn",
+          "days": 8,
+          "focus": "Supervised/Unsupervised algorithms, Loss functions, Cross-validation, Hyperparameter tuning",
+          "milestone": "Build end-to-end ML prediction pipeline with evaluation metrics",
+          "is_weakness_remediation": true
+        },
+        {
+          "module_name": "Deep Learning & PyTorch Architectures",
+          "days": 8,
+          "focus": "CNNs, RNNs, Transformers, Backpropagation, Attention mechanisms",
+          "milestone": "Train PyTorch vision & text classification models",
+          "is_weakness_remediation": false
+        },
+        {
+          "module_name": "Generative AI, LLMs & Agent Systems",
+          "days": 6,
+          "focus": "Prompt Engineering, RAG architectures, Vector embeddings, CrewAI & LangGraph multi-agent orchestration",
+          "milestone": "Deploy a complete multi-agent RAG workflow with tool calling",
+          "is_weakness_remediation": false
+        },
+        {
+          "module_name": "Mock Interviews & System Design Capstone",
+          "days": 3,
+          "focus": "Technical interview problem solving, System design for AI systems, Resume project defense",
+          "milestone": "Pass 2 full mock technical interviews with score >= 8.0/10",
+          "is_weakness_remediation": false
+        }
+      ],
+      "schedule": [
+        {
+          "day": 1,
+          "date": "2026-10-01",
+          "module": "Mathematics & Probability Foundation",
+          "focus_topic": "Mathematics & Probability Foundation - Part 1",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Probability distributions",
+          "status": "pending"
+        },
+        {
+          "day": 2,
+          "date": "2026-10-02",
+          "module": "Mathematics & Probability Foundation",
+          "focus_topic": "Mathematics & Probability Foundation - Part 2",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Bayes Theorem",
+          "status": "pending"
+        },
+        {
+          "day": 3,
+          "date": "2026-10-03",
+          "module": "Mathematics & Probability Foundation",
+          "focus_topic": "Mathematics & Probability Foundation - Part 3",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Linear Algebra for ML",
+          "status": "pending"
+        },
+        {
+          "day": 4,
+          "date": "2026-10-04",
+          "module": "Mathematics & Probability Foundation",
+          "focus_topic": "Mathematics & Probability Foundation - Part 4",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Matrix operations",
+          "status": "pending"
+        },
+        {
+          "day": 5,
+          "date": "2026-10-05",
+          "module": "Mathematics & Probability Foundation",
+          "focus_topic": "Mathematics & Probability Foundation - Part 5",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Probability distributions",
+          "status": "pending"
+        },
+        {
+          "day": 6,
+          "date": "2026-10-06",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 1",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Supervised/Unsupervised algorithms",
+          "status": "pending"
+        },
+        {
+          "day": 7,
+          "date": "2026-10-07",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 2",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Loss functions",
+          "status": "pending"
+        },
+        {
+          "day": 8,
+          "date": "2026-10-08",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 3",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Cross-validation",
+          "status": "pending"
+        },
+        {
+          "day": 9,
+          "date": "2026-10-09",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 4",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Hyperparameter tuning",
+          "status": "pending"
+        },
+        {
+          "day": 10,
+          "date": "2026-10-10",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 5",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Supervised/Unsupervised algorithms",
+          "status": "pending"
+        },
+        {
+          "day": 11,
+          "date": "2026-10-11",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 6",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Loss functions",
+          "status": "pending"
+        },
+        {
+          "day": 12,
+          "date": "2026-10-12",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 7",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Cross-validation",
+          "status": "pending"
+        },
+        {
+          "day": 13,
+          "date": "2026-10-13",
+          "module": "Machine Learning Core & Scikit-Learn",
+          "focus_topic": "Machine Learning Core & Scikit-Learn - Part 8",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Hyperparameter tuning",
+          "status": "pending"
+        },
+        {
+          "day": 14,
+          "date": "2026-10-14",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 1",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study CNNs",
+          "status": "pending"
+        },
+        {
+          "day": 15,
+          "date": "2026-10-15",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 2",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study RNNs",
+          "status": "pending"
+        },
+        {
+          "day": 16,
+          "date": "2026-10-16",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 3",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Transformers",
+          "status": "pending"
+        },
+        {
+          "day": 17,
+          "date": "2026-10-17",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 4",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Backpropagation",
+          "status": "pending"
+        },
+        {
+          "day": 18,
+          "date": "2026-10-18",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 5",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Attention mechanisms",
+          "status": "pending"
+        },
+        {
+          "day": 19,
+          "date": "2026-10-19",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 6",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study CNNs",
+          "status": "pending"
+        },
+        {
+          "day": 20,
+          "date": "2026-10-20",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 7",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study RNNs",
+          "status": "pending"
+        },
+        {
+          "day": 21,
+          "date": "2026-10-21",
+          "module": "Deep Learning & PyTorch Architectures",
+          "focus_topic": "Deep Learning & PyTorch Architectures - Part 8",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Transformers",
+          "status": "pending"
+        },
+        {
+          "day": 22,
+          "date": "2026-10-22",
+          "module": "Generative AI, LLMs & Agent Systems",
+          "focus_topic": "Generative AI, LLMs & Agent Systems - Part 1",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Prompt Engineering",
+          "status": "pending"
+        },
+        {
+          "day": 23,
+          "date": "2026-10-23",
+          "module": "Generative AI, LLMs & Agent Systems",
+          "focus_topic": "Generative AI, LLMs & Agent Systems - Part 2",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study RAG architectures",
+          "status": "pending"
+        },
+        {
+          "day": 24,
+          "date": "2026-10-24",
+          "module": "Generative AI, LLMs & Agent Systems",
+          "focus_topic": "Generative AI, LLMs & Agent Systems - Part 3",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Vector embeddings",
+          "status": "pending"
+        },
+        {
+          "day": 25,
+          "date": "2026-10-25",
+          "module": "Generative AI, LLMs & Agent Systems",
+          "focus_topic": "Generative AI, LLMs & Agent Systems - Part 4",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study CrewAI & LangGraph multi-agent orchestration",
+          "status": "pending"
+        },
+        {
+          "day": 26,
+          "date": "2026-10-26",
+          "module": "Generative AI, LLMs & Agent Systems",
+          "focus_topic": "Generative AI, LLMs & Agent Systems - Part 5",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Prompt Engineering",
+          "status": "pending"
+        },
+        {
+          "day": 27,
+          "date": "2026-10-27",
+          "module": "Generative AI, LLMs & Agent Systems",
+          "focus_topic": "Generative AI, LLMs & Agent Systems - Part 6",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study RAG architectures",
+          "status": "pending"
+        },
+        {
+          "day": 28,
+          "date": "2026-10-28",
+          "module": "Mock Interviews & System Design Capstone",
+          "focus_topic": "Mock Interviews & System Design Capstone - Part 1",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Technical interview problem solving",
+          "status": "pending"
+        },
+        {
+          "day": 29,
+          "date": "2026-10-29",
+          "module": "Mock Interviews & System Design Capstone",
+          "focus_topic": "Mock Interviews & System Design Capstone - Part 2",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study System design for AI systems",
+          "status": "pending"
+        },
+        {
+          "day": 30,
+          "date": "2026-10-30",
+          "module": "Mock Interviews & System Design Capstone",
+          "focus_topic": "Mock Interviews & System Design Capstone - Part 3",
+          "allocated_hours": 2.0,
+          "time_slot": "Evening (2.0 hrs)",
+          "action_item": "Study Resume project defense",
+          "status": "pending"
+        }
+      ],
+      "weak_topics_addressed": [
+        "Mathematics & Probability Foundation",
+        "Machine Learning Core & Scikit-Learn"
+      ],
+      "created_at": "2026-10-01T05:02:46.302523",
+      "optimal_curriculum_path": {
+        "algorithm": "A* Search",
+        "path": [
+          "Python Basics",
+          "NumPy & Pandas",
+          "Data Visualization",
+          "Exploratory Data Analysis",
+          "Machine Learning Fundamentals",
+          "MLOps & Model Deployment",
+          "AI Agent Systems",
+          "AI Engineer Mastery"
+        ],
+        "total_cost": 80.0,
+        "nodes_visited": 11,
+        "nodes_explored": [
+          "Python Basics",
+          "NumPy & Pandas",
+          "Statistics & Probability",
+          "Data Visualization",
+          "Object Oriented Programming",
+          "Exploratory Data Analysis",
+          "Machine Learning Fundamentals",
+          "Data Scientist Mastery",
+          "MLOps & Model Deployment",
+          "AI Agent Systems",
+          "AI Engineer Mastery"
+        ],
+        "execution_time_ms": 0.049,
+        "success": true,
+        "metadata": {
+          "final_f_cost": 80.0,
+          "heuristic_at_start": 80.0
+        }
+      },
+      "_id": "49c162f4-a255-42a5-83b8-8d3d610cc58f"
+    }
+  ],
+  "interview_sessions": [
+    {
+      "session_id": "6dd9869b-19f3-4b9f-823f-1d7fdff16f33",
+      "user_id": "test_user_agent",
+      "target_role": "AI Engineer",
+      "topic": "Machine Learning",
+      "difficulty": "Medium",
+      "status": "in_progress",
+      "current_question": {
+        "question_id": "q_mac_01",
+        "topic": "Machine Learning",
+        "difficulty": "Medium",
+        "question": "Explain the difference between L1 (Lasso) and L2 (Ridge) Regularization. How does the L1 penalty induce sparsity in learned feature weights?",
+        "expected_keywords": [
+          "Lasso",
+          "Ridge",
+          "sparsity",
+          "penalty",
+          "L1 norm",
+          "feature selection",
+          "loss"
+        ]
+      },
+      "questions_answered": [],
+      "total_score": 0.0,
+      "created_at": "2026-10-01T05:02:46.306874",
+      "_id": "c29bc131-fd4e-4d69-8eb3-c3e5bd821c6e"
+    }
+  ],
+  "memory": [
+    {
+      "memory_id": "2360b3ce-dd9d-41bc-a716-92dffed03db0",
+      "id": "2360b3ce-dd9d-41bc-a716-92dffed03db0",
+      "user_id": "test_user_agent",
+      "memory_type": "achievement",
+      "content": "Scored 8.3/10 in Machine Learning mock interview session.",
+      "importance": 0.85,
+      "created_at": "2026-10-01T05:02:46.308748",
+      "updated_at": "2026-10-01T05:02:46.308758",
+      "source": "interview_session:6dd9869b-19f3-4b9f-823f-1d7fdff16f33",
+      "metadata": {
+        "topic": "Machine Learning",
+        "score": 8.3,
+        "difficulty": "Hard"
+      },
+      "_id": "2360b3ce-dd9d-41bc-a716-92dffed03db0"
+    },
+    {
+      "memory_id": "0b825392-f68c-42a3-8ef4-1b7339f89410",
+      "id": "0b825392-f68c-42a3-8ef4-1b7339f89410",
+      "user_id": "test_student_101",
+      "memory_type": "career_goal",
+      "content": "Target Career Goal is AI Engineer.",
+      "importance": 0.8,
+      "created_at": "2026-10-01T05:02:52.134035",
+      "updated_at": "2026-10-01T05:02:52.136059",
+      "source": "chat_interaction",
+      "metadata": {},
+      "_id": "0b825392-f68c-42a3-8ef4-1b7339f89410"
+    }
+  ],
+  "student_profiles": [
+    {
+      "user_id": "test_user_agent",
+      "name": "Chitra",
+      "academic_year": "2nd Year",
+      "branch": "Computer Science and Engineering",
+      "career_goal": "AI Engineer",
+      "target_role": "Artificial Intelligence Engineer",
+      "skills": {
+        "Python": 85,
+        "SQL": 70,
+        "Machine Learning": 40,
+        "Data Structures": 75,
+        "Statistics": 45
+      },
+      "weak_topics": [
+        "Statistics",
+        "Deep Learning",
+        "System Design"
+      ],
+      "completed_topics": [
+        "Python Basics",
+        "Object Oriented Programming",
+        "SQL Fundamentals"
+      ],
+      "learning_progress": {
+        "Python": 85,
+        "Machine Learning": 40,
+        "Data Science": 55,
+        "Algorithms": 65
+      },
+      "study_preferences": {
+        "preferred_time": "Evening",
+        "daily_hours": 2.0,
+        "learning_style": "Hands-on projects & Code examples"
+      },
+      "interview_scores": {
+        "Python": 8.0,
+        "Machine Learning": 4.5,
+        "AI Fundamentals": 6.0
+      },
+      "updated_at": "2026-10-01T05:02:46.321350",
+      "_id": "65354675-10d8-4be3-9c0a-4e6300b66554"
+    },
+    {
+      "user_id": "user_chitra",
+      "name": "Chitra",
+      "academic_year": "2nd Year",
+      "branch": "Computer Science and Engineering",
+      "career_goal": "AI Engineer",
+      "target_role": "Artificial Intelligence Engineer",
+      "skills": {
+        "Python": 85,
+        "SQL": 70,
+        "Machine Learning": 40,
+        "Data Structures": 75,
+        "Statistics": 45
+      },
+      "weak_topics": [
+        "Statistics",
+        "Deep Learning",
+        "System Design"
+      ],
+      "completed_topics": [
+        "Python Basics",
+        "Object Oriented Programming",
+        "SQL Fundamentals"
+      ],
+      "learning_progress": {
+        "Python": 85,
+        "Machine Learning": 40,
+        "Data Science": 55,
+        "Algorithms": 65
+      },
+      "study_preferences": {
+        "preferred_time": "Evening",
+        "daily_hours": 2.0,
+        "learning_style": "Hands-on projects & Code examples"
+      },
+      "interview_scores": {
+        "Python": 8.0,
+        "Machine Learning": 4.5,
+        "AI Fundamentals": 6.0
+      },
+      "updated_at": "2026-10-01T05:02:49.253595",
+      "_id": "8131fa33-3b82-420b-b10e-1a85a6c00a1b"
+    },
+    {
+      "user_id": "test_student_101",
+      "career_goal": "Ai Engineer",
+      "_id": "f1a09b93-e9e1-4a7d-9af1-35d612c999ca",
+      "weak_topics": [
+        "Machine Learning",
+        "Statistics"
+      ],
+      "skills": {
+        "Python": 80
+      }
+    }
+  ],
+  "chat_history": [
+    {
+      "user_id": "test_user_agent",
+      "conversation_id": "246f50bd-7dcc-44bf-8909-fc5d2e3536e3",
+      "user_message": "What should I learn next to become an AI Engineer?",
+      "agent_response": "### \ud83c\udfaf Personalized Learning Recommendation\n\nBased on your profile, long-term memory, and target goal of becoming an **AI Engineer**:\n\n1. **Core Strength Acknowledged**: You already have solid proficiency in **Python (85%)** and foundational programming.\n2. **Critical Priority**: Your current **Machine Learning proficiency (40%)** and **Statistics** represent the primary skill gaps.\n\n#### **Immediate Action Plan**:\n- **Step 1 (Days 1\u20137)**: Review **Probability & Statistical Inference** (Bayes Rule, Gaussian distributions, expectation).\n- **Step 2 (Days 8\u201318)**: Master **Machine Learning Fundamentals** using Scikit-Learn (Linear Models, SVM, Tree Ensembles, Loss minimization).\n- **Step 3 (Days 19\u201330)**: Progress into **Deep Learning & PyTorch** (Backprop, Multi-Layer Perceptrons, CNNs).\n\n\ud83d\udca1 *Would you like me to generate your full 30-day interactive study calendar or launch a diagnostic quiz?*",
+      "tools_used": [],
+      "agents_used": [
+        "EduMind Coordinator",
+        "Career Agent"
+      ],
+      "memories_extracted": 0,
+      "timestamp": "2026-10-01T05:02:49.166897",
+      "_id": "d7d72b12-0ec5-4990-babc-9f62fcf0aaea"
+    },
+    {
+      "user_id": "user_chitra",
+      "conversation_id": "79d0a730-c0b6-44ee-ba9e-e4867a7310aa",
+      "user_message": "What should I learn next for AI Engineering?",
+      "agent_response": "### \ud83c\udfaf Personalized Learning Recommendation\n\nBased on your profile, long-term memory, and target goal of becoming an **AI Engineer**:\n\n1. **Core Strength Acknowledged**: You already have solid proficiency in **Python (85%)** and foundational programming.\n2. **Critical Priority**: Your current **Machine Learning proficiency (40%)** and **Statistics** represent the primary skill gaps.\n\n#### **Immediate Action Plan**:\n- **Step 1 (Days 1\u20137)**: Review **Probability & Statistical Inference** (Bayes Rule, Gaussian distributions, expectation).\n- **Step 2 (Days 8\u201318)**: Master **Machine Learning Fundamentals** using Scikit-Learn (Linear Models, SVM, Tree Ensembles, Loss minimization).\n- **Step 3 (Days 19\u201330)**: Progress into **Deep Learning & PyTorch** (Backprop, Multi-Layer Perceptrons, CNNs).\n\n\ud83d\udca1 *Would you like me to generate your full 30-day interactive study calendar or launch a diagnostic quiz?*",
+      "tools_used": [],
+      "agents_used": [
+        "EduMind Coordinator",
+        "Study Agent"
+      ],
+      "memories_extracted": 0,
+      "timestamp": "2026-10-01T05:02:52.032733",
+      "_id": "4604bc7a-03c5-4013-b42c-539f8c9f6dca"
+    },
+    {
+      "user_id": "test_student_101",
+      "conversation_id": "session_turn_01",
+      "user_message": "I want to become an AI Engineer. I am weak in Statistics.",
+      "agent_response": "Great, I have noted your career goal as AI Engineer and Statistics as a weak area.",
+      "tools_used": [],
+      "agents_used": [],
+      "memories_extracted": 2,
+      "timestamp": "2026-10-01T05:02:52.124988",
+      "_id": "6b23bf1b-0214-49f9-828d-be16047b1619"
+    }
+  ],
+  "users": [
+    {
+      "id": "user_chitra",
+      "username": "chitra",
+      "email": "chitra@eduagent.ai",
+      "name": "Chitra",
+      "academic_year": "2nd Year",
+      "branch": "Computer Science and Engineering",
+      "password_hash": "13d6b759df65fa25c8fe01ef1ec49904088482205ebb1bf38728f6beaa9097b8",
+      "created_at": "2026-10-01T05:02:49.250221",
+      "is_active": true,
+      "_id": "user_chitra"
+    }
+  ]
+}
