@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, Upload, FileText, Search, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 
-export default function RagVaultView() {
+export default function RagVaultView({ currentUser }) {
+  const targetUserId = currentUser?.user_id || currentUser?.id || "chitra_demo_user";
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -14,7 +15,7 @@ export default function RagVaultView() {
   const fetchDocs = async () => {
     setLoading(true);
     try {
-      const res = await api.getDocuments();
+      const res = await api.getDocuments(targetUserId);
       setDocs(res);
     } catch (err) {
       console.error(err);
@@ -25,7 +26,8 @@ export default function RagVaultView() {
 
   useEffect(() => {
     fetchDocs();
-  }, []);
+  }, [targetUserId]);
+
 
   const handleUpload = async (e) => {
     e.preventDefault();

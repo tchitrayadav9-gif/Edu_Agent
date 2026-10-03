@@ -49,6 +49,9 @@ htmlcov/
 chroma_db/
 backend/app/database/local_db.json
 backend/app/database/uploads/
+backend/data/local_db.json
+backend/data/uploads/
+
 
 # IDE / Editor
 .vscode/

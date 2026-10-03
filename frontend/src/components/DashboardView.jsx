@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Compass, Target, Award, Database, FileText, CheckCircle, AlertTriangle, TrendingUp, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 
-export default function DashboardView() {
+export default function DashboardView({ currentUser }) {
+  const targetUserId = currentUser?.user_id || currentUser?.id || "chitra_demo_user";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const res = await api.getDashboard();
+      const res = await api.getDashboard(targetUserId);
       setData(res);
     } catch (err) {
       console.error(err);
@@ -20,7 +21,8 @@ export default function DashboardView() {
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [targetUserId]);
+
 
   if (loading || !data) {
     return (

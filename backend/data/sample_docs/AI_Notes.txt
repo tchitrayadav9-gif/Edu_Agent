@@ -1,0 +1,6 @@
+AI Lecture Notes - Module 3: Informed State Space Search & Heuristics.
+1. A* Search Algorithm: A* evaluates nodes by combining g(n) (cost to reach node n from start) and h(n) (estimated heuristic cost from n to goal): f(n) = g(n) + h(n).
+2. Heuristic Admissibility: A heuristic h(n) is admissible if for every node n, h(n) <= h*(n), where h*(n) is the true optimal cost from n to goal. An admissible heuristic never overestimates the cost to reach the goal.
+3. Optimality & Completeness: A* is complete and optimal if h(n) is admissible (for tree search) or consistent (for graph search).
+4. Consistency: Satisfies the triangle inequality: h(n) <= c(n, a, n') + h(n').
+5. Comparison with BFS/Dijkstra: Unlike uninformed Dijkstra/BFS which expand equally in all directions, A* uses heuristic guidance to prune irrelevant search branches, reducing explored nodes significantly.

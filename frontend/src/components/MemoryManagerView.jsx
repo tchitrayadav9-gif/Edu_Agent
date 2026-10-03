@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Database, Plus, Trash2, Tag, Star, Clock, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 
-export default function MemoryManagerView() {
+export default function MemoryManagerView({ currentUser }) {
+  const targetUserId = currentUser?.user_id || currentUser?.id || "chitra_demo_user";
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newType, setNewType] = useState('important_fact');
@@ -12,7 +13,7 @@ export default function MemoryManagerView() {
   const fetchMemories = async () => {
     setLoading(true);
     try {
-      const res = await api.getMemories();
+      const res = await api.getMemories(targetUserId);
       setMemories(res);
     } catch (err) {
       console.error(err);
@@ -23,7 +24,8 @@ export default function MemoryManagerView() {
 
   useEffect(() => {
     fetchMemories();
-  }, []);
+  }, [targetUserId]);
+
 
   const handleAdd = async (e) => {
     e.preventDefault();

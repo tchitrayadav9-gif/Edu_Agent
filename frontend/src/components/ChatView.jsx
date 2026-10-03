@@ -3,12 +3,17 @@ import { Send, Bot, User, Sparkles, Database, FileText, Wrench, RefreshCw } from
 import { api } from '../api';
 import AgentActivityPanel from './AgentActivityPanel';
 
-export default function ChatView({ provider }) {
+export default function ChatView({ provider, currentUser }) {
+  const studentName = currentUser?.name || currentUser?.username || "Chitra";
+  const studentYear = currentUser?.academic_year || "2nd Year";
+  const studentBranch = currentUser?.branch || "CSE";
+  const targetUserId = currentUser?.user_id || currentUser?.id || "chitra_demo_user";
+
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hello Chitra! I am **EduMind Agent**, your personalized learning & career AI assistant. I have loaded your academic profile and active memory context.\n\nHow can I help you today? You can ask me to optimize your study roadmap, evaluate your mock interview answers, analyze skill gaps for AI Engineering, or query your uploaded course notes via RAG.",
-      activities: ["✓ Loaded student profile (Chitra - 2nd Year CSE)", "✓ Checked long-term memory", "✓ Initialized EduMind Agent Coordinator"],
+      content: `Hello ${studentName}! I am **EduMind Agent**, your personalized learning & career AI assistant. I have loaded your academic profile (${studentYear} ${studentBranch}) and active memory context.\n\nHow can I help you today? You can ask me to optimize your study roadmap, evaluate your mock interview answers, analyze skill gaps for AI Engineering, or query your uploaded course notes via RAG.`,
+      activities: [`✓ Loaded student profile (${studentName} - ${studentYear})`, "✓ Checked long-term memory", "✓ Initialized EduMind Agent Coordinator"],
       memories: [],
       documents: [],
       agents: ["EduMind Coordinator"]
@@ -33,7 +38,7 @@ export default function ChatView({ provider }) {
   }, [messages, loading]);
 
   const quickPrompts = [
-    "My name is Chitra. I want to become an AI Engineer. I know Python but weak in Machine Learning.",
+    `My name is ${studentName}. I want to become an AI Engineer. I know Python but weak in Machine Learning.`,
     "What should I learn next?",
     "Explain A* search according to my notes.",
     "Create a 30-day plan for AI Engineering.",
@@ -51,7 +56,8 @@ export default function ChatView({ provider }) {
     setLoading(true);
 
     try {
-      const res = await api.chat(query, "conv_" + Date.now(), provider);
+      const res = await api.chat(query, "conv_" + Date.now(), provider, targetUserId);
+
       
       setCurrentActivities(res.activities || []);
       setCurrentMemories(res.memories_retrieved || []);

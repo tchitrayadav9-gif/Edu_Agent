@@ -20,18 +20,52 @@ def test_root_and_health_endpoints():
 
 
 def test_auth_and_profile_flow():
-    # Login as demo student
-    r_login = client.post("/api/auth/login", json={"username": "chitra", "password": "securepassword"})
-    assert r_login.status_code == 200
-    token = r_login.json()["access_token"]
+    # 1. Register a new custom user
+    unique_username = "teststudent_99"
+    r_reg = client.post("/api/auth/register", json={
+        "username": unique_username,
+        "name": "Alex Smith",
+        "email": "alex.smith@university.edu",
+        "password": "Password123!",
+        "academic_year": "3rd Year",
+        "branch": "Computer Science and Engineering",
+        "career_goal": "Data Scientist"
+    })
+    assert r_reg.status_code == 200
+    reg_data = r_reg.json()
+    assert reg_data["user"]["username"] == unique_username
+    assert reg_data["user"]["name"] == "Alex Smith"
+    token = reg_data["access_token"]
     assert token is not None
 
-    # Get student profile
-    headers = {"Authorization": f"Bearer {token}", "X-User-Id": "user_chitra"}
+    # 2. Prevent duplicate username registration
+    r_dup = client.post("/api/auth/register", json={
+        "username": unique_username,
+        "name": "Alex Duplicate",
+        "email": "another@university.edu",
+        "password": "Password123!"
+    })
+    assert r_dup.status_code == 400
+    assert "already taken" in r_dup.json()["detail"]
+
+    # 3. Login with email
+    r_login = client.post("/api/auth/login", json={"username": "alex.smith@university.edu", "password": "Password123!"})
+    assert r_login.status_code == 200
+    assert r_login.json()["user"]["username"] == unique_username
+
+    # 4. Verify /api/auth/me
+    headers = {"Authorization": f"Bearer {token}", "X-User-Id": reg_data["user"]["id"]}
+    r_me = client.get("/api/auth/me", headers=headers)
+    assert r_me.status_code == 200
+    assert r_me.json()["username"] == unique_username
+
+    # 5. Get student profile for registered user
     r_prof = client.get("/api/student/profile", headers=headers)
     assert r_prof.status_code == 200
     data = r_prof.json()
-    assert data["name"] == "Chitra"
+    assert data["name"] == "Alex Smith"
+    assert data["career_goal"] == "Data Scientist"
+
 
 
 def test_chat_api_endpoint():

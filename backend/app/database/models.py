@@ -31,6 +31,9 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    career_goal: Optional[str] = "AI Engineer"
+    skills: Optional[Dict[str, int]] = None
+
 
 
 class UserLogin(BaseModel):

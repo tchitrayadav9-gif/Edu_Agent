@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Award, Play, Send, CheckCircle2, AlertCircle, ArrowRight, RefreshCw, Star } from 'lucide-react';
 import { api } from '../api';
 
-export default function MockInterviewView() {
+export default function MockInterviewView({ currentUser }) {
+  const targetUserId = currentUser?.user_id || currentUser?.id || "chitra_demo_user";
   const [topic, setTopic] = useState('Machine Learning');
   const [session, setSession] = useState(null);
   const [answer, setAnswer] = useState('');
@@ -14,7 +15,7 @@ export default function MockInterviewView() {
     setFeedbackData(null);
     setAnswer('');
     try {
-      const res = await api.startInterview('AI Engineer', topic);
+      const res = await api.startInterview(currentUser?.career_goal || 'AI Engineer', topic, targetUserId);
       setSession(res);
     } catch (err) {
       console.error(err);
@@ -29,7 +30,7 @@ export default function MockInterviewView() {
 
     setLoading(true);
     try {
-      const res = await api.submitAnswer(session.session_id, answer);
+      const res = await api.submitAnswer(session.session_id, answer, targetUserId);
       setFeedbackData(res);
     } catch (err) {
       console.error(err);
@@ -37,6 +38,7 @@ export default function MockInterviewView() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="space-y-6">
