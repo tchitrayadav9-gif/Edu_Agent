@@ -39,7 +39,7 @@ class LongTermMemory:
             existing = self.db.memory.find_one({"user_id": user_id, "memory_type": memory_type})
             if existing:
                 self.db.memory.update_one(
-                    {"_id": existing["_id"]},
+                    {"user_id": user_id, "memory_type": memory_type},
                     {
                         "$set": {
                             "content": content,

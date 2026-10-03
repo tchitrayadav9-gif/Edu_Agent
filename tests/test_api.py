@@ -20,12 +20,15 @@ def test_root_and_health_endpoints():
 
 
 def test_auth_and_profile_flow():
-    # 1. Register a new custom user
-    unique_username = "teststudent_99"
+    import uuid
+    # 1. Register a new custom user with dynamic unique handle
+    unique_suffix = uuid.uuid4().hex[:6]
+    unique_username = f"teststudent_{unique_suffix}"
+    unique_email = f"alex_{unique_suffix}@university.edu"
     r_reg = client.post("/api/auth/register", json={
         "username": unique_username,
         "name": "Alex Smith",
-        "email": "alex.smith@university.edu",
+        "email": unique_email,
         "password": "Password123!",
         "academic_year": "3rd Year",
         "branch": "Computer Science and Engineering",
@@ -49,7 +52,7 @@ def test_auth_and_profile_flow():
     assert "already taken" in r_dup.json()["detail"]
 
     # 3. Login with email
-    r_login = client.post("/api/auth/login", json={"username": "alex.smith@university.edu", "password": "Password123!"})
+    r_login = client.post("/api/auth/login", json={"username": unique_email, "password": "Password123!"})
     assert r_login.status_code == 200
     assert r_login.json()["user"]["username"] == unique_username
 

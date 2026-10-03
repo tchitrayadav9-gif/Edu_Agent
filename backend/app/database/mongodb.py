@@ -12,6 +12,12 @@ from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 logger = logging.getLogger("edumind.database")
 
 # Local fallback file path
@@ -146,6 +152,88 @@ class FallbackDatabase:
         return LocalCollection(collection_name, self)
 
 
+class MongoCollectionWrapper:
+    """Wrapper around a PyMongo collection that converts ObjectId fields to strings for FastAPI/Pydantic."""
+    def __init__(self, collection):
+        self._col = collection
+
+    def _convert_query_ids(self, query):
+        if not isinstance(query, dict):
+            return query
+        from bson import ObjectId
+        new_q = {}
+        for k, v in query.items():
+            if k == "_id" and isinstance(v, str) and ObjectId.is_valid(v):
+                new_q[k] = ObjectId(v)
+            elif isinstance(v, dict):
+                new_q[k] = self._convert_query_ids(v)
+            else:
+                new_q[k] = v
+        return new_q
+
+    def _sanitize(self, doc):
+        if doc is None:
+            return None
+        if isinstance(doc, dict):
+            clean = {}
+            for k, v in doc.items():
+                if k == "_id":
+                    clean["_id"] = str(v)
+                elif isinstance(v, dict):
+                    clean[k] = self._sanitize(v)
+                elif isinstance(v, list):
+                    clean[k] = [self._sanitize(item) if isinstance(item, dict) else (str(item) if hasattr(item, "generation_time") else item) for item in v]
+                elif hasattr(v, "generation_time"):  # Check if ObjectId
+                    clean[k] = str(v)
+                else:
+                    clean[k] = v
+            return clean
+        return doc
+
+    def find(self, filter=None, *args, **kwargs):
+        filter = self._convert_query_ids(filter) if filter else {}
+        cursor = self._col.find(filter, *args, **kwargs)
+        return [self._sanitize(doc) for doc in cursor]
+
+    def find_one(self, filter=None, *args, **kwargs):
+        filter = self._convert_query_ids(filter) if filter else {}
+        doc = self._col.find_one(filter, *args, **kwargs)
+        return self._sanitize(doc)
+
+    def insert_one(self, *args, **kwargs):
+        return self._col.insert_one(*args, **kwargs)
+
+    def insert_many(self, *args, **kwargs):
+        return self._col.insert_many(*args, **kwargs)
+
+    def update_one(self, filter, update, *args, **kwargs):
+        filter = self._convert_query_ids(filter)
+        return self._col.update_one(filter, update, *args, **kwargs)
+
+    def update_many(self, filter, update, *args, **kwargs):
+        filter = self._convert_query_ids(filter)
+        return self._col.update_many(filter, update, *args, **kwargs)
+
+    def delete_one(self, filter, *args, **kwargs):
+        filter = self._convert_query_ids(filter)
+        return self._col.delete_one(filter, *args, **kwargs)
+
+    def delete_many(self, filter, *args, **kwargs):
+        filter = self._convert_query_ids(filter)
+        return self._col.delete_many(filter, *args, **kwargs)
+
+    def count_documents(self, filter=None, *args, **kwargs):
+        filter = self._convert_query_ids(filter) if filter else {}
+        return self._col.count_documents(filter, *args, **kwargs)
+
+    def aggregate(self, *args, **kwargs):
+        cursor = self._col.aggregate(*args, **kwargs)
+        return [self._sanitize(doc) for doc in cursor]
+
+    def __getattr__(self, name):
+        return getattr(self._col, name)
+
+
 class DatabaseManager:
     """Central database coordinator managing connection and collections."""
     def __init__(self):
@@ -158,8 +246,8 @@ class DatabaseManager:
 
     def _init_connection(self):
         try:
-            # Try connecting to MongoDB with a 1.5-second timeout
-            self.client = MongoClient(self.mongo_uri, serverSelectionTimeoutMS=1500)
+            # Try connecting to MongoDB with a 3-second timeout
+            self.client = MongoClient(self.mongo_uri, serverSelectionTimeoutMS=3000)
             self.client.admin.command('ping')
             self.db = self.client[self.db_name]
             self.is_connected = True
@@ -172,6 +260,8 @@ class DatabaseManager:
     def get_collection(self, name: str):
         if self.db is None:
             self._init_connection()
+        if self.is_connected and self.db is not None:
+            return MongoCollectionWrapper(self.db[name])
         return self.db[name]
 
     @property
