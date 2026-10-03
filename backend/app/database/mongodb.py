@@ -200,11 +200,20 @@ class MongoCollectionWrapper:
         doc = self._col.find_one(filter, *args, **kwargs)
         return self._sanitize(doc)
 
-    def insert_one(self, *args, **kwargs):
-        return self._col.insert_one(*args, **kwargs)
+    def insert_one(self, doc, *args, **kwargs):
+        res = self._col.insert_one(doc, *args, **kwargs)
+        if isinstance(doc, dict):
+            if "_id" in doc and (hasattr(doc["_id"], "generation_time") or not isinstance(doc["_id"], (str, int, float, bool))):
+                doc["_id"] = str(doc["_id"])
+        return res
 
-    def insert_many(self, *args, **kwargs):
-        return self._col.insert_many(*args, **kwargs)
+    def insert_many(self, docs, *args, **kwargs):
+        res = self._col.insert_many(docs, *args, **kwargs)
+        for doc in docs:
+            if isinstance(doc, dict):
+                if "_id" in doc and (hasattr(doc["_id"], "generation_time") or not isinstance(doc["_id"], (str, int, float, bool))):
+                    doc["_id"] = str(doc["_id"])
+        return res
 
     def update_one(self, filter, update, *args, **kwargs):
         filter = self._convert_query_ids(filter)
