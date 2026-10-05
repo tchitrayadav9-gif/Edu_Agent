@@ -31,16 +31,42 @@ class LocalCollection:
         self.name = name
         self.parent_db = parent_db
 
-    def find(self, query: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def _apply_projection(self, doc: Dict[str, Any], projection: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        if not projection or not isinstance(projection, dict):
+            return dict(doc)
+        # Inclusion projection e.g. {'username': 1, 'email': 1}
+        has_inclusions = any(v == 1 or v is True for v in projection.values() if v not in (0, False))
+        if has_inclusions:
+            result = {}
+            if projection.get("_id", 1) != 0 and "_id" in doc:
+                result["_id"] = doc["_id"]
+            for k, v in projection.items():
+                if (v == 1 or v is True) and k in doc:
+                    result[k] = doc[k]
+            return result
+        else:
+            # Exclusion projection
+            result = dict(doc)
+            for k, v in projection.items():
+                if (v == 0 or v is False) and k in result:
+                    result.pop(k, None)
+            return result
+
+    def find(self, query: Optional[Dict[str, Any]] = None, projection: Optional[Dict[str, Any]] = None, *args, **kwargs) -> List[Dict[str, Any]]:
         docs = self.parent_db.data.get(self.name, [])
         if not query:
-            return [dict(d) for d in docs]
+            return [self._apply_projection(d, projection) for d in docs]
         
         result = []
         for doc in docs:
             match = True
             for k, v in query.items():
-                if isinstance(v, dict) and "$in" in v:
+                if k == "$or" and isinstance(v, list):
+                    or_match = any(all(doc.get(sub_k) == sub_v for sub_k, sub_v in condition.items()) for condition in v)
+                    if not or_match:
+                        match = False
+                        break
+                elif isinstance(v, dict) and "$in" in v:
                     if doc.get(k) not in v["$in"]:
                         match = False
                         break
@@ -48,11 +74,11 @@ class LocalCollection:
                     match = False
                     break
             if match:
-                result.append(dict(doc))
+                result.append(self._apply_projection(doc, projection))
         return result
 
-    def find_one(self, query: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        docs = self.find(query)
+    def find_one(self, query: Optional[Dict[str, Any]] = None, projection: Optional[Dict[str, Any]] = None, *args, **kwargs) -> Optional[Dict[str, Any]]:
+        docs = self.find(query, projection)
         return docs[0] if docs else None
 
     def insert_one(self, document: Dict[str, Any]):
@@ -254,15 +280,24 @@ class DatabaseManager:
         self._init_connection()
 
     def _init_connection(self):
+        # Configure public DNS servers to resolve MongoDB SRV cluster records rapidly
         try:
-            # Try connecting to MongoDB with a 3-second timeout
-            self.client = MongoClient(self.mongo_uri, serverSelectionTimeoutMS=3000)
+            import dns.resolver
+            res = dns.resolver.Resolver()
+            res.nameservers = ['8.8.8.8', '1.1.1.1', '8.8.4.4']
+            dns.resolver.default_resolver = res
+        except Exception:
+            pass
+
+        try:
+            # Try connecting to MongoDB with a 5-second timeout
+            self.client = MongoClient(self.mongo_uri, serverSelectionTimeoutMS=5000)
             self.client.admin.command('ping')
             self.db = self.client[self.db_name]
             self.is_connected = True
-            logger.info("Connected successfully to live MongoDB instance.")
+            logger.info(f"Connected successfully to live MongoDB instance ({self.db_name}).")
         except (ConnectionFailure, ServerSelectionTimeoutError, Exception) as e:
-            logger.warning(f"MongoDB not reachable at {self.mongo_uri} ({e}). Using persistent Local JSON Database engine.")
+            logger.warning(f"MongoDB not reachable at {self.mongo_uri[:35]}... ({e}). Using persistent Local JSON Database engine.")
             self.db = FallbackDatabase()
             self.is_connected = False
 

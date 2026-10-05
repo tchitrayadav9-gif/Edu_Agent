@@ -3,17 +3,18 @@ import { Send, Bot, User, Sparkles, Database, FileText, Wrench, RefreshCw } from
 import { api } from '../api';
 import AgentActivityPanel from './AgentActivityPanel';
 
-export default function ChatView({ provider, currentUser }) {
-  const studentName = currentUser?.name || currentUser?.username || "Chitra";
+export default function ChatView({ provider, currentUser, onOpenPreferences }) {
+  const studentName = currentUser?.name || currentUser?.username || "Student";
   const studentYear = currentUser?.academic_year || "2nd Year";
   const studentBranch = currentUser?.branch || "CSE";
+  const targetCareer = currentUser?.career_goal || "AI Engineer";
   const targetUserId = currentUser?.user_id || currentUser?.id || "chitra_demo_user";
 
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `Hello ${studentName}! I am **EduMind Agent**, your personalized learning & career AI assistant. I have loaded your academic profile (${studentYear} ${studentBranch}) and active memory context.\n\nHow can I help you today? You can ask me to optimize your study roadmap, evaluate your mock interview answers, analyze skill gaps for AI Engineering, or query your uploaded course notes via RAG.`,
-      activities: [`✓ Loaded student profile (${studentName} - ${studentYear})`, "✓ Checked long-term memory", "✓ Initialized EduMind Agent Coordinator"],
+      content: `Hello ${studentName}! I am **EduMind Agent**, your personalized learning & career AI mentor.\n\nI have loaded your profile (**${targetCareer} Track • ${studentYear} ${studentBranch}**) and synchronized your persistent long-term memories from the MongoDB cluster.\n\nHow would you like to proceed? You can ask me to formulate your 30-day study roadmap, test your technical readiness with a mock interview, analyze skill gaps, or explain concepts from your course notes!`,
+      activities: [`✓ Loaded student profile (${studentName} - ${targetCareer})`, "✓ Checked long-term memory vault", "✓ Initialized EduMind Agent Coordinator"],
       memories: [],
       documents: [],
       agents: ["EduMind Coordinator"]
@@ -38,11 +39,11 @@ export default function ChatView({ provider, currentUser }) {
   }, [messages, loading]);
 
   const quickPrompts = [
-    `My name is ${studentName}. I want to become an AI Engineer. I know Python but weak in Machine Learning.`,
+    `My name is ${studentName}. I want to become an ${targetCareer}. I know Python but weak in Machine Learning.`,
     "What should I learn next?",
     "Explain A* search according to my notes.",
-    "Create a 30-day plan for AI Engineering.",
-    "Test me for an AI interview.",
+    `Create a 30-day plan for ${targetCareer}.`,
+    "Test me for a technical interview.",
     "What should I improve based on my previous interview?"
   ];
 
@@ -163,19 +164,30 @@ export default function ChatView({ provider, currentUser }) {
         </div>
 
         {/* Quick Demo Prompts Chips */}
-        <div className="px-4 py-2 border-t border-slate-800/60 bg-slate-950/40 flex items-center space-x-2 overflow-x-auto scrollbar-none">
-          <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-teal-400" /> Demo:
-          </span>
-          {quickPrompts.map((prompt, idx) => (
+        <div className="px-4 py-2 border-t border-slate-800/60 bg-slate-950/40 flex items-center justify-between space-x-2 overflow-x-auto scrollbar-none">
+          <div className="flex items-center space-x-2 shrink-0">
+            <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider shrink-0 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-teal-400" /> Prompts:
+            </span>
+            {quickPrompts.map((prompt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSend(prompt)}
+                className="text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 px-2.5 py-1 rounded-full border border-slate-700/50 whitespace-nowrap transition-colors"
+              >
+                {prompt.length > 38 ? prompt.substring(0, 38) + "..." : prompt}
+              </button>
+            ))}
+          </div>
+
+          {onOpenPreferences && (
             <button
-              key={idx}
-              onClick={() => handleSend(prompt)}
-              className="text-xs text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 px-2.5 py-1 rounded-full border border-slate-700/50 whitespace-nowrap transition-colors"
+              onClick={onOpenPreferences}
+              className="text-xs text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 px-2.5 py-1 rounded-full border border-teal-500/30 whitespace-nowrap font-medium transition shrink-0 ml-2"
             >
-              {prompt.length > 38 ? prompt.substring(0, 38) + "..." : prompt}
+              ⚙️ Tune Preferences
             </button>
-          ))}
+          )}
         </div>
 
         {/* Input Bar */}

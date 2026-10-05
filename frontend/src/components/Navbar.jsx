@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { Brain, Sparkles, Database, BookOpen, Compass, Award, Cpu, GitBranch, BarChart3, Settings, User, LogOut, LogIn, ChevronDown } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab, provider, setProvider, currentUser, onOpenAuth, onLogout }) {
+export default function Navbar({ activeTab, setActiveTab, provider, setProvider, currentUser, onOpenAuth, onOpenPreferences, onLogout }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const navItems = [
-    { id: 'chat', label: 'EduMind Chat', icon: Brain },
+    { id: 'chat', label: 'EduMind Agent', icon: Brain },
     { id: 'dashboard', label: 'Dashboard', icon: Compass },
-    { id: 'memory', label: 'Memory Manager', icon: Database },
-    { id: 'rag', label: 'RAG Vault', icon: BookOpen },
+    { id: 'memory', label: 'Memory Vault', icon: Database },
+    { id: 'rag', label: 'RAG Notes', icon: BookOpen },
     { id: 'interview', label: 'Mock Interview', icon: Award },
-    { id: 'search', label: 'Search & Path', icon: GitBranch },
-    { id: 'reasoning', label: 'Logic & Rules', icon: Cpu },
-    { id: 'evaluation', label: 'Evaluation (50Q)', icon: BarChart3 },
-    { id: 'settings', label: 'MCP & Models', icon: Settings },
+    { id: 'labs', label: 'AI Labs & Benchmarks', icon: Cpu },
   ];
 
   const displayName = currentUser?.name || currentUser?.username || 'Chitra';
@@ -41,7 +38,17 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
           </div>
 
           {/* Model Switcher & User Controls */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Quick Preferences Button */}
+            <button
+              onClick={onOpenPreferences}
+              className="hidden md:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-teal-500/50 text-xs text-teal-300 transition"
+              title="Configure your career track, skills & guidance preferences"
+            >
+              <Compass className="w-3.5 h-3.5 text-teal-400" />
+              <span>Guidance Setup</span>
+            </button>
+
             {/* Model Provider */}
             <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-1 text-xs">
               <span className="text-slate-400 px-2 flex items-center gap-1 hidden sm:flex">
@@ -72,12 +79,21 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-1 text-xs z-50">
+                  <div className="absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-1 text-xs z-50">
                     <div className="px-3 py-2 border-b border-slate-800 text-slate-400">
                       <p className="font-bold text-slate-200">{displayName}</p>
-                      <p className="text-[10px] text-teal-400">{currentUser.email || `${currentUser.username}@eduagent.ai`}</p>
+                      <p className="text-[10px] text-teal-400 truncate">{currentUser.email || `${currentUser.username}@eduagent.ai`}</p>
                       <p className="text-[10px] text-slate-500">{displayBranch}</p>
                     </div>
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        onOpenPreferences();
+                      }}
+                      className="w-full text-left px-3 py-2 text-teal-300 hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <Compass className="w-3.5 h-3.5 text-teal-400" /> Guidance Preferences
+                    </button>
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
@@ -92,7 +108,7 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
                         setDropdownOpen(false);
                         onLogout();
                       }}
-                      className="w-full text-left px-3 py-2 text-rose-400 hover:bg-slate-800 flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 text-rose-400 hover:bg-slate-800 flex items-center gap-2 border-t border-slate-800/80"
                     >
                       <LogOut className="w-3.5 h-3.5" /> Sign Out
                     </button>

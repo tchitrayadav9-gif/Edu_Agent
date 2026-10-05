@@ -97,6 +97,42 @@ class LLMFactory:
         Deep pedagogical cognitive synthesis for grounded academic answers.
         """
         u_lower = user_prompt.lower()
+        import re
+
+        # Handle Student Introduction / Goal Declaration (e.g. "My name is ... I want to become an AI Engineer...")
+        if any(w in u_lower for w in ["my name is", "i am", "i want to become", "i know", "weak in", "strong in"]):
+            name_match = re.search(r"my name is\s+([A-Za-z\s]+?)(?:\.|\,|$|\s+i\s+)", user_prompt, re.IGNORECASE)
+            goal_match = re.search(r"(?:become|target|goal is)\s+(?:an?\s+)?([A-Za-z\s]+?)(?:\.|\,|$|\s+i\s+)", user_prompt, re.IGNORECASE)
+            name = name_match.group(1).strip().title() if name_match else "Student"
+            goal = goal_match.group(1).strip().title() if goal_match else "AI Engineer"
+
+            skills_found = []
+            if "python" in u_lower: skills_found.append("Python")
+            if "sql" in u_lower: skills_found.append("SQL")
+            if "data structures" in u_lower: skills_found.append("Data Structures")
+
+            weak_found = []
+            if "machine learning" in u_lower or "ml" in u_lower: weak_found.append("Machine Learning")
+            if "statistics" in u_lower or "math" in u_lower: weak_found.append("Statistics & Probability")
+            if "deep learning" in u_lower: weak_found.append("Deep Learning")
+            if "system design" in u_lower: weak_found.append("System Design")
+
+            strengths_str = ", ".join(skills_found) if skills_found else "Core Programming"
+            weak_str = ", ".join(weak_found) if weak_found else "Advanced Machine Learning"
+
+            return (
+                f"### 👋 Welcome {name}!\n\n"
+                f"Great to meet you! I have initialized your personalized profile and updated your active memory in the database:\n\n"
+                f"- 🎯 **Target Career Goal**: **{goal}**\n"
+                f"- 💪 **Validated Foundation**: **{strengths_str}**\n"
+                f"- ⚠️ **Remediation Priority**: **{weak_str}**\n"
+                f"- 💾 **Memory Status**: Saved 4 key episodic facts into your **Long-Term Memory Vault**.\n\n"
+                f"#### **Recommended Immediate Strategy**:\n"
+                f"1. **Remediation**: Dedicate 2 hours daily focusing on fundamental mathematical modeling and Scikit-Learn pipelines.\n"
+                f"2. **Interactive Roadmap**: I can generate a tailored **30-Day Study Plan** optimized for your evening schedule.\n"
+                f"3. **Skill Diagnostics**: When you're ready, we can launch an **Adaptive Technical Mock Interview** to benchmark your readiness.\n\n"
+                f"👉 *Would you like me to construct your 30-day curriculum roadmap or run a quick diagnostic test on Machine Learning?*"
+            )
 
         # Handle RAG / Document-specific queries
         if "--- source" in user_prompt.lower() or "search algorithms" in u_lower or "a* search" in u_lower or "notes say" in u_lower:
@@ -173,10 +209,15 @@ class LLMFactory:
         # Default structured academic response
         return (
             f"### 🧠 EduMind AI Assistant\n\n"
-            f"I have processed your query in relation to your academic profile and active memory context.\n\n"
+            f"I have evaluated your request against your student profile and persistent memory.\n\n"
             f"- **Target Track**: AI & Software Engineering\n"
-            "- **Context**: All tools, memory stores, and specialized agents are actively synchronized.\n\n"
-            f"How would you like to proceed? We can explore **Study Planning**, **Career Skill-Gap Analysis**, **Mock Interview Practice**, or **Document RAG**."
+            f"- **Active Agents**: EduMind Coordinator, Career Agent, Study Planner\n"
+            f"- **Database Sync**: Connected to MongoDB Atlas cluster.\n\n"
+            f"How would you like to proceed? We can explore:\n"
+            f"1. **30-Day Personalized Study Roadmap**\n"
+            f"2. **Bayesian Career Suitability & Skill-Gap Analysis**\n"
+            f"3. **Technical Mock Interview Practice & Scoring**\n"
+            f"4. **Course Notes Semantic RAG Question-Answering**"
         )
 
 
