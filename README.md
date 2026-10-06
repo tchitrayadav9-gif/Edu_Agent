@@ -180,7 +180,14 @@ python -m venv venv
 pip install -r backend/requirements.txt
 ```
 
-### Step 3: Run the Backend Server
+### Step 3: Configure Database & Seed MongoDB Atlas Cluster
+
+```bash
+# Seed all 11 production collections in your MongoDB Atlas Cluster
+python backend/app/database/seed_cluster.py
+```
+
+### Step 4: Run the Backend Server
 
 ```bash
 uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
@@ -189,7 +196,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 - **Interactive API Documentation (Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Root Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
 
-### Step 4: Run the Web UI
+### Step 5: Run the Web UI
 
 ```bash
 cd frontend
@@ -198,6 +205,7 @@ npm run dev
 ```
 
 - **Live Web Dashboard & Chat Interface**: [http://localhost:5173](http://localhost:5173) (or [http://localhost:8000/app](http://localhost:8000/app) for single-port unified serving).
+- **Multi-User Universal Access**: Anyone can create an account and tune their **Personalized Guidance Preferences** (Career Track, Skill Levels, Weak Topics, Daily Study Hours, Preferred Study Time) directly saved to MongoDB Atlas!
 
 ---
 
