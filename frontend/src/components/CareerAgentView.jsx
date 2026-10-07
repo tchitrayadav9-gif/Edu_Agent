@@ -176,6 +176,17 @@ export default function CareerAgentView({ currentUser, onOpenLearning, onOpenInt
                       style={{ width: `${gap.gap_delta}%` }}
                     ></div>
                   </div>
+
+                  {/* Learn This Skill Action Button */}
+                  <div className="flex justify-end pt-1">
+                    <button
+                      onClick={() => onOpenLearning && onOpenLearning(gap.skill)}
+                      className="px-3 py-1 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg text-xs font-semibold transition flex items-center gap-1"
+                    >
+                      <span>Learn {gap.skill}</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (

@@ -171,7 +171,69 @@ export const api = {
     return res.json();
   },
 
-  // Study
+  // Learning Platform & Agent APIs
+  getLearningSubjects: async (category = null) => {
+    const url = category ? `${API_BASE}/api/learning/subjects?category=${encodeURIComponent(category)}` : `${API_BASE}/api/learning/subjects`;
+    const res = await fetch(url);
+    return res.json();
+  },
+  getLearningSubjectDetails: async (subjectId) => {
+    const res = await fetch(`${API_BASE}/api/learning/subjects/${encodeURIComponent(subjectId)}`);
+    return res.json();
+  },
+  getLearningResources: async (subjectId) => {
+    const res = await fetch(`${API_BASE}/api/learning/resources/${encodeURIComponent(subjectId)}`);
+    return res.json();
+  },
+  createLearningPlan: async (planData, userId = null) => {
+    const targetUserId = userId || getStoredAuth().userId;
+    const res = await fetch(`${API_BASE}/api/learning/plan`, {
+      method: "POST",
+      headers: getHeaders({ "X-User-Id": targetUserId }),
+      body: JSON.stringify(planData)
+    });
+    return res.json();
+  },
+  getLearningPlan: async (subject = null, userId = null) => {
+    const targetUserId = userId || getStoredAuth().userId;
+    const url = subject ? `${API_BASE}/api/learning/plan?subject=${encodeURIComponent(subject)}` : `${API_BASE}/api/learning/plan`;
+    const res = await fetch(url, {
+      headers: getHeaders({ "X-User-Id": targetUserId })
+    });
+    return res.json();
+  },
+  getTopicContent: async (subject, topic, level = "Beginner") => {
+    const res = await fetch(`${API_BASE}/api/learning/topic-content?subject=${encodeURIComponent(subject)}&topic=${encodeURIComponent(topic)}&level=${encodeURIComponent(level)}`);
+    return res.json();
+  },
+  recordTopicProgress: async (subject, topic, status = "Completed", timeSpentMinutes = 45, quizScore = null, userId = null) => {
+    const targetUserId = userId || getStoredAuth().userId;
+    const res = await fetch(`${API_BASE}/api/learning/progress`, {
+      method: "POST",
+      headers: getHeaders({ "X-User-Id": targetUserId }),
+      body: JSON.stringify({ subject, topic, status, time_spent_minutes: timeSpentMinutes, quiz_score: quizScore })
+    });
+    return res.json();
+  },
+  getLearningProgress: async (subject = null, userId = null) => {
+    const targetUserId = userId || getStoredAuth().userId;
+    const url = subject ? `${API_BASE}/api/learning/progress?subject=${encodeURIComponent(subject)}` : `${API_BASE}/api/learning/progress`;
+    const res = await fetch(url, {
+      headers: getHeaders({ "X-User-Id": targetUserId })
+    });
+    return res.json();
+  },
+  askEduMindDoubt: async (message, subject, topic, level = "Beginner", goal = "Career", actionType = null, userId = null) => {
+    const targetUserId = userId || getStoredAuth().userId;
+    const res = await fetch(`${API_BASE}/api/edumind/chat`, {
+      method: "POST",
+      headers: getHeaders({ "X-User-Id": targetUserId }),
+      body: JSON.stringify({ message, subject, topic, level, goal, action_type: actionType })
+    });
+    return res.json();
+  },
+
+  // Legacy Study endpoints for backward compatibility
   generateStudyPlan: async (options = {}, userId = null) => {
     const targetUserId = userId || getStoredAuth().userId;
     const res = await fetch(`${API_BASE}/api/study/generate`, {

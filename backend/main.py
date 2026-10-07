@@ -29,6 +29,7 @@ from .app.api.planning import router as planning_router
 from .app.api.evaluation import router as evaluation_router
 from .app.api.mcp_api import router as mcp_router
 from .app.api.dashboard import router as dashboard_router
+from .app.api.learning import router as learning_router, edumind_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("edumind.server")
@@ -106,6 +107,8 @@ app.include_router(planning_router)
 app.include_router(evaluation_router)
 app.include_router(mcp_router)
 app.include_router(dashboard_router)
+app.include_router(learning_router)
+app.include_router(edumind_router)
 
 # Mount Frontend static files if built
 frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")

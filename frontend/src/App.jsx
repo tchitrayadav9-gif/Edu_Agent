@@ -6,9 +6,6 @@ import LearningAgentView from './components/LearningAgentView';
 import CareerAgentView from './components/CareerAgentView';
 import MockInterviewView from './components/MockInterviewView';
 import ChatView from './components/ChatView';
-import RagVaultView from './components/RagVaultView';
-import MemoryManagerView from './components/MemoryManagerView';
-import AiLabsView from './components/AiLabsView';
 import ProfileView from './components/ProfileView';
 import GuidancePreferencesModal from './components/GuidancePreferencesModal';
 import { getStoredAuth, clearStoredAuth, api } from './api';
@@ -18,6 +15,8 @@ export default function App() {
   const [provider, setProvider] = useState('auto');
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [preferencesModalOpen, setPreferencesModalOpen] = useState(false);
+  const [selectedLearningSubject, setSelectedLearningSubject] = useState("Python");
+
   const [currentUser, setCurrentUser] = useState(() => {
     const { user } = getStoredAuth();
     return user || {
@@ -71,8 +70,13 @@ export default function App() {
     });
   };
 
+  const handleLearnSkillBridge = (subjectName) => {
+    setSelectedLearningSubject(subjectName);
+    setActiveTab('learning');
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -89,11 +93,13 @@ export default function App() {
           <DashboardView
             currentUser={currentUser}
             onNavigate={setActiveTab}
+            onLearnSubject={handleLearnSkillBridge}
           />
         )}
         {activeTab === 'learning' && (
           <LearningAgentView
             currentUser={currentUser}
+            initialSubject={selectedLearningSubject}
             onOpenInterview={() => setActiveTab('interview')}
             onOpenCareer={() => setActiveTab('career')}
           />
@@ -101,7 +107,7 @@ export default function App() {
         {activeTab === 'career' && (
           <CareerAgentView
             currentUser={currentUser}
-            onOpenLearning={() => setActiveTab('learning')}
+            onOpenLearning={handleLearnSkillBridge}
             onOpenInterview={() => setActiveTab('interview')}
           />
         )}
@@ -118,9 +124,6 @@ export default function App() {
             onOpenPreferences={() => setPreferencesModalOpen(true)}
           />
         )}
-        {activeTab === 'rag' && <RagVaultView currentUser={currentUser} />}
-        {activeTab === 'memory' && <MemoryManagerView currentUser={currentUser} />}
-        {activeTab === 'labs' && <AiLabsView />}
         {activeTab === 'profile' && (
           <ProfileView
             currentUser={currentUser}
@@ -150,7 +153,7 @@ export default function App() {
           <span>EduAgent Platform • Connected to MongoDB Atlas</span>
         </div>
         <div>
-          Multi-Agent System with Learning, Career Guidance & Mock Interview Engines
+          Personalized Learning, Career Guidance & Mock Interview AI System
         </div>
       </footer>
     </div>

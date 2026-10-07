@@ -1,22 +1,20 @@
 import React, { useState } from 'react';
 import {
-  Brain, Sparkles, Database, BookOpen, Compass, Award, Cpu, GitBranch,
-  BarChart3, Settings, User, LogOut, LogIn, ChevronDown, Layers
+  Brain, Sparkles, BookOpen, Compass, Award,
+  BarChart3, Settings, User, LogOut, LogIn, ChevronDown, Flame, CheckCircle
 } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, provider, setProvider, currentUser, onOpenAuth, onOpenPreferences, onLogout }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, badge: null },
-    { id: 'learning', label: 'Learning Agent', icon: BookOpen, badge: 'A*' },
-    { id: 'career', label: 'Career Agent', icon: Compass, badge: 'Bayes' },
-    { id: 'interview', label: 'Mock Interview', icon: Award, badge: 'Rubric' },
-    { id: 'chat', label: 'EduMind AI', icon: Brain, badge: null },
-    { id: 'rag', label: 'RAG Notes', icon: Database, badge: null },
-    { id: 'memory', label: 'Memory Vault', icon: Layers, badge: null },
-    { id: 'labs', label: 'AI Labs', icon: Cpu, badge: null },
-    { id: 'profile', label: 'My Profile', icon: User, badge: null },
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'learning', label: 'Learning', icon: BookOpen },
+    { id: 'career', label: 'Career Guidance', icon: Compass },
+    { id: 'interview', label: 'Mock Interview', icon: Award },
+    { id: 'chat', label: 'EduMind AI', icon: Brain },
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   const displayName = currentUser?.name || currentUser?.username || 'Chitra';
@@ -29,19 +27,19 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo */}
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-500 via-emerald-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-teal-400 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <Brain className="w-6 h-6 text-slate-950 stroke-[2.5]" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-lg tracking-tight text-white">
-                  Edu<span className="bg-gradient-to-r from-teal-400 to-emerald-300 bg-clip-text text-transparent">Agent</span>
+                  Edu<span className="bg-gradient-to-r from-indigo-400 to-teal-300 bg-clip-text text-transparent">Agent</span>
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/30">
-                  Multi-Agent
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
+                  AI Platform
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block">Memory-Enabled Cognitive Learning & Career Platform</p>
+              <p className="text-[11px] text-slate-400 hidden sm:block">Personalized Learning & Career System</p>
             </div>
           </div>
 
@@ -50,12 +48,12 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
             {/* Model Provider */}
             <div className="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1 text-xs">
               <span className="text-slate-400 px-2 flex items-center gap-1 hidden md:flex">
-                <Sparkles className="w-3.5 h-3.5 text-teal-400" /> Model:
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Model:
               </span>
               <select
                 value={provider}
                 onChange={(e) => setProvider(e.target.value)}
-                className="bg-slate-900 text-slate-200 border-none rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-teal-500 text-xs font-semibold cursor-pointer"
+                className="bg-slate-900 text-slate-200 border-none rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-indigo-500 text-xs font-semibold cursor-pointer"
               >
                 <option value="auto">Auto (Adaptive Engine)</option>
                 <option value="openai">OpenAI GPT-4o</option>
@@ -80,7 +78,7 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
                   <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 text-xs z-50 animate-fadeIn">
                     <div className="px-4 py-2.5 border-b border-slate-800 text-slate-400">
                       <p className="font-bold text-slate-200 text-sm">{displayName}</p>
-                      <p className="text-[11px] text-teal-400 truncate">{currentUser.email || `${currentUser.username || 'chitra'}@eduagent.ai`}</p>
+                      <p className="text-[11px] text-indigo-400 truncate">{currentUser.email || `${currentUser.username || 'chitra'}@eduagent.ai`}</p>
                       <p className="text-[11px] text-slate-500">{displayBranch}</p>
                     </div>
 
@@ -91,7 +89,7 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
                       }}
                       className="w-full text-left px-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2"
                     >
-                      <User className="w-3.5 h-3.5 text-teal-400" /> My Student Profile
+                      <User className="w-3.5 h-3.5 text-indigo-400" /> My Profile
                     </button>
 
                     <button
@@ -99,9 +97,9 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
                         setDropdownOpen(false);
                         onOpenPreferences();
                       }}
-                      className="w-full text-left px-4 py-2 text-teal-300 hover:bg-slate-800 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 text-indigo-300 hover:bg-slate-800 flex items-center gap-2"
                     >
-                      <Compass className="w-3.5 h-3.5 text-teal-400" /> Guidance Preferences
+                      <Settings className="w-3.5 h-3.5 text-indigo-400" /> Guidance Settings
                     </button>
 
                     <button
@@ -111,7 +109,7 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
                       }}
                       className="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-800 flex items-center gap-2"
                     >
-                      <Settings className="w-3.5 h-3.5 text-indigo-400" /> Switch / Add Account
+                      <Sparkles className="w-3.5 h-3.5 text-teal-400" /> Switch / Add Account
                     </button>
 
                     <button
@@ -129,7 +127,7 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
             ) : (
               <button
                 onClick={onOpenAuth}
-                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-600 hover:to-emerald-500 text-slate-950 font-bold text-xs shadow transition"
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-teal-400 hover:from-indigo-600 hover:to-teal-500 text-slate-950 font-bold text-xs shadow transition"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>Sign In / Register</span>
@@ -138,7 +136,7 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
           </div>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs (Removed RAG Notes & Memory Vault) */}
         <nav className="flex space-x-1 overflow-x-auto py-2.5 border-t border-slate-800/50 scrollbar-none">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -146,22 +144,21 @@ export default function Navbar({ activeTab, setActiveTab, provider, setProvider,
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  if (item.id === 'settings') {
+                    onOpenPreferences();
+                  } else {
+                    setActiveTab(item.id);
+                  }
+                }}
                 className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
                   isActive
-                    ? 'bg-teal-500/10 text-teal-300 border border-teal-500/30 shadow-sm'
+                    ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-teal-400' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
                 <span>{item.label}</span>
-                {item.badge && (
-                  <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
-                    isActive ? 'bg-teal-500/20 text-teal-200' : 'bg-slate-800 text-slate-400'
-                  }`}>
-                    {item.badge}
-                  </span>
-                )}
               </button>
             );
           })}

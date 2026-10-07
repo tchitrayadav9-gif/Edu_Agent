@@ -1,616 +1,990 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Sparkles, CheckCircle2, Play, ChevronRight, Clock, Target, Award, RefreshCw, HelpCircle, ArrowRight, Zap, Layers } from 'lucide-react';
+import {
+  BookOpen, Sparkles, CheckCircle2, Play, ChevronRight, Clock, Target, Award,
+  RefreshCw, HelpCircle, ArrowRight, Zap, Layers, ExternalLink, Flame, Check,
+  Search, Code, Compass, ShieldAlert, ArrowLeft, MessageSquare, Send, BookMarked,
+  Filter, CheckCircle, AlertTriangle
+} from 'lucide-react';
 import { api } from '../api';
 
-export default function LearningAgentView({ currentUser, onOpenInterview, onOpenCareer }) {
+export default function LearningAgentView({ currentUser, initialSubject, onOpenCareer, onOpenInterview }) {
   const targetUserId = currentUser?.user_id || currentUser?.id || "chitra_demo_user";
-  const [activeSubTab, setActiveSubTab] = useState('study_plan'); // 'study_plan', 'curriculum', 'tutor', 'quiz'
-  const [loading, setLoading] = useState(false);
-  const [studyPlanData, setStudyPlanData] = useState(null);
-  const [dailyHours, setDailyHours] = useState(2);
-  const [preferredTime, setPreferredTime] = useState('Evening');
   
-  // Tutor state
-  const [tutorQuery, setTutorQuery] = useState('');
-  const [tutorResponse, setTutorResponse] = useState(null);
-  const [tutorLoading, setTutorLoading] = useState(false);
+  // URL Param detection (e.g. /learning?subject=Python)
+  const getSubjectFromUrl = () => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('subject') || null;
+    } catch (e) {
+      return null;
+    }
+  };
 
-  // Quiz state
-  const [quizTopic, setQuizTopic] = useState('Machine Learning');
-  const [quizQuestionIndex, setQuizQuestionIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
+  // State Management
+  const [subject, setSubject] = useState(initialSubject || getSubjectFromUrl() || "Python");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [customSubjectInput, setCustomSubjectInput] = useState("");
+  
+  // Customization Wizard state
+  const [level, setLevel] = useState("Beginner");
+  const [goal, setGoal] = useState("Career");
+  const [customGoal, setCustomGoal] = useState("");
+  const [dailyTime, setDailyTime] = useState("1 hour");
+  const [daysPerWeek, setDaysPerWeek] = useState(5);
+  const [deadline, setDeadline] = useState("6 weeks");
+  const [isConfiguring, setIsConfiguring] = useState(false);
+
+  // Active Plan & Topic view state
+  const [planData, setPlanData] = useState(null);
+  const [activeTopic, setActiveTopic] = useState(null);
+  const [topicContent, setTopicContent] = useState(null);
+  const [progressSummary, setProgressSummary] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [topicLoading, setTopicLoading] = useState(false);
+
+  // Quiz state inside Topic View
+  const [userQuizAnswers, setUserQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
 
-  const sampleQuizzes = {
-    'Machine Learning': [
-      {
-        q: "What is the primary cause of overfitting in a supervised learning model?",
-        options: [
-          "Too few training epochs",
-          "Excessive model complexity relative to data volume & lack of regularization",
-          "High bias and low variance",
-          "Learning rate being set too small"
-        ],
-        answer: 1,
-        explanation: "Overfitting occurs when a model with excessive capacity captures noise in the training dataset rather than true underlying patterns."
-      },
-      {
-        q: "Which metric is most suitable for evaluating a classification model on highly imbalanced data?",
-        options: [
-          "Accuracy",
-          "F1-Score / PR-AUC",
-          "Mean Squared Error (MSE)",
-          "Mean Absolute Percentage Error"
-        ],
-        answer: 1,
-        explanation: "F1-Score (harmonic mean of Precision & Recall) and PR-AUC evaluate true positives effectively despite heavy class imbalance."
-      },
-      {
-        q: "What does the Bias-Variance trade-off describe?",
-        options: [
-          "The balance between training speed and memory consumption",
-          "The balance between underfitting (high bias) and overfitting (high variance)",
-          "The trade-off between CPU and GPU compute usage",
-          "The difference between L1 and L2 regularization"
-        ],
-        answer: 1,
-        explanation: "Bias represents error from erroneous assumptions (underfitting), while variance represents sensitivity to small fluctuations in the training set (overfitting)."
-      }
-    ],
-    'Python': [
-      {
-        q: "In Python, how does a generator function differ from a regular function?",
-        options: [
-          "It uses the 'yield' statement and returns an iterator object without storing all items in memory",
-          "It executes asynchronously on a secondary thread",
-          "It compiles directly to native C bytecode",
-          "It cannot accept input arguments"
-        ],
-        answer: 0,
-        explanation: "Generators use 'yield' to produce items lazily on demand, preserving execution state and saving memory for large sequences."
-      },
-      {
-        q: "What is the Global Interpreter Lock (GIL) in CPython?",
-        options: [
-          "A security lock preventing unauthorized script execution",
-          "A mutex that protects access to Python objects, preventing multiple native threads from executing Python bytecodes at once",
-          "A database lock used by SQLite",
-          "A memory garbage collector"
-        ],
-        answer: 1,
-        explanation: "The GIL prevents true parallel execution of Python bytecode across multiple threads in CPython to ensure thread-safe memory management."
-      }
-    ]
-  };
+  // EduMind AI Tutor inside Topic View
+  const [edumindQuery, setEdumindQuery] = useState("");
+  const [edumindLoading, setEdumindLoading] = useState(false);
+  const [edumindHistory, setEdumindHistory] = useState([]);
 
-  const handleGeneratePlan = async () => {
+  // Load Subject Catalog & Active Plan
+  const [subjectsList, setSubjectsList] = useState([]);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const subs = await api.getLearningSubjects();
+        if (Array.isArray(subs)) setSubjectsList(subs);
+      } catch (err) {
+        console.error("Error fetching subjects catalog:", err);
+      }
+    };
+    fetchSubjects();
+  }, []);
+
+  // Sync when initialSubject changes (e.g. coming from Career Agent "Learn This Skill")
+  useEffect(() => {
+    if (initialSubject && initialSubject !== subject) {
+      setSubject(initialSubject);
+      handleGeneratePlan(initialSubject);
+    }
+  }, [initialSubject]);
+
+  // Load Active Plan & Progress on Mount or Subject Change
+  const handleGeneratePlan = async (targetSubj = subject) => {
     setLoading(true);
     try {
-      const res = await api.generateStudyPlan({
-        career_goal: currentUser?.career_goal || 'AI Engineer',
-        daily_hours: parseFloat(dailyHours),
-        preferred_time: preferredTime,
-        days: 30
-      }, targetUserId);
-      setStudyPlanData(res);
+      const planReq = {
+        subject: targetSubj,
+        level: level,
+        goal: goal === "Custom" ? customGoal || "Career" : goal,
+        daily_minutes: dailyTime === "30 minutes" ? 30 : dailyTime === "1 hour" ? 60 : dailyTime === "2 hours" ? 120 : dailyTime === "3 hours" ? 180 : 240,
+        days_per_week: daysPerWeek,
+        deadline: deadline
+      };
+      const plan = await api.createLearningPlan(planReq, targetUserId);
+      setPlanData(plan);
+      setIsConfiguring(false);
+      
+      // Also fetch progress summary
+      const prog = await api.getLearningProgress(targetSubj, targetUserId);
+      setProgressSummary(prog);
     } catch (err) {
-      console.error("Error generating study plan:", err);
+      console.error("Error generating learning plan:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    handleGeneratePlan();
-  }, [targetUserId]);
+    handleGeneratePlan(subject);
+  }, [subject, targetUserId]);
 
-  const handleAskTutor = async (e) => {
-    e.preventDefault();
-    if (!tutorQuery.trim()) return;
-    setTutorLoading(true);
+  // Select and Open Topic Detailed Screen
+  const handleOpenTopic = async (topicItem) => {
+    const topicName = typeof topicItem === 'string' ? topicItem : topicItem.title;
+    setActiveTopic(topicName);
+    setTopicLoading(true);
+    setUserQuizAnswers({});
+    setQuizSubmitted(false);
+    setQuizScore(0);
+    setEdumindHistory([]);
+
     try {
-      const res = await api.chat(
-        `[Learning Agent Query]: As my personalized AI tutor, please explain "${tutorQuery}" clearly with pedagogical intuition, a simple real-world analogy, a code snippet if applicable, and 3 key interview takeaways.`,
-        "learning_agent_tutor",
-        "auto",
+      const content = await api.getTopicContent(subject, topicName, level);
+      setTopicContent(content);
+    } catch (err) {
+      console.error("Error fetching topic content:", err);
+    } finally {
+      setTopicLoading(false);
+    }
+  };
+
+  // Mark Topic Complete & Record Progress in MongoDB Atlas
+  const handleCompleteTopic = async () => {
+    if (!activeTopic) return;
+    try {
+      const res = await api.recordTopicProgress(
+        subject,
+        activeTopic,
+        "Completed",
+        45,
+        quizSubmitted ? quizScore : 5,
         targetUserId
       );
-      setTutorResponse(res.response || res.message);
+      // Refresh Progress Summary
+      const updatedProg = await api.getLearningProgress(subject, targetUserId);
+      setProgressSummary(updatedProg);
+      
+      // Update local plan topic status
+      if (planData && planData.weeks) {
+        const updatedWeeks = planData.weeks.map(week => ({
+          ...week,
+          topics: week.topics.map(t => t.title === activeTopic ? { ...t, status: "Completed" } : t)
+        }));
+        setPlanData({ ...planData, weeks: updatedWeeks });
+      }
     } catch (err) {
-      console.error(err);
-      setTutorResponse("I encountered an issue generating the tutorial. Please try again.");
+      console.error("Error recording progress:", err);
+    }
+  };
+
+  // Submit EduMind Doubt in Topic View
+  const handleAskEduMind = async (customMessage = null, actionType = null) => {
+    const query = customMessage || edumindQuery;
+    if (!query.trim() && !actionType) return;
+    
+    setEdumindLoading(true);
+    const userMsg = query || `Triggered action: ${actionType}`;
+    
+    // Add user message to thread
+    setEdumindHistory(prev => [...prev, { sender: 'user', text: userMsg }]);
+    if (!customMessage) setEdumindQuery("");
+
+    try {
+      const res = await api.askEduMindDoubt(
+        query,
+        subject,
+        activeTopic || "Core Concepts",
+        level,
+        goal,
+        actionType,
+        targetUserId
+      );
+
+      setEdumindHistory(prev => [
+        ...prev,
+        {
+          sender: 'edumind',
+          text: res.response,
+          actions: res.suggested_actions || []
+        }
+      ]);
+    } catch (err) {
+      console.error("Error asking EduMind:", err);
+      setEdumindHistory(prev => [
+        ...prev,
+        {
+          sender: 'edumind',
+          text: "I encountered an issue connecting to the AI learning engine. Please try again."
+        }
+      ]);
     } finally {
-      setTutorLoading(false);
+      setEdumindLoading(false);
     }
   };
 
-  const currentQuizList = sampleQuizzes[quizTopic] || sampleQuizzes['Machine Learning'];
-  const currentQuiz = currentQuizList[quizQuestionIndex] || currentQuizList[0];
-
-  const handleAnswerOption = (idx) => {
+  // Quiz Option Click
+  const handleSelectQuizOption = (qIdx, optIdx) => {
     if (quizSubmitted) return;
-    setSelectedOption(idx);
-    setQuizSubmitted(true);
-    if (idx === currentQuiz.answer) {
-      setQuizScore(prev => prev + 1);
-    }
+    setUserQuizAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
   };
 
-  const handleNextQuiz = () => {
-    setSelectedOption(null);
-    setQuizSubmitted(false);
-    if (quizQuestionIndex + 1 < currentQuizList.length) {
-      setQuizQuestionIndex(prev => prev + 1);
-    } else {
-      setQuizQuestionIndex(0);
-      setQuizScore(0);
-    }
+  // Submit Topic Quiz
+  const handleSubmitQuiz = () => {
+    if (!topicContent?.quiz) return;
+    let score = 0;
+    topicContent.quiz.forEach((q, idx) => {
+      if (userQuizAnswers[idx] === q.answer_index) score += 1;
+    });
+    setQuizScore(score);
+    setQuizSubmitted(true);
   };
+
+  // Filtered Subjects List for Selection Screen
+  const filteredSubjects = subjectsList.filter(s => {
+    const matchesCategory = categoryFilter === "All" || s.category.toLowerCase() === categoryFilter.toLowerCase();
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="space-y-6">
-      {/* Learning Agent Hero Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5">
+      {/* 1. Header & Progress Stats Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/20 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+          <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
                 <BookOpen className="w-6 h-6" />
               </span>
               <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                  Learning Agent Workspace
-                  <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-medium">
-                    A* Optimized Path
+                <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                  Learning Agent: <span className="text-indigo-400">{subject}</span>
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                    {level}
                   </span>
                 </h1>
                 <p className="text-xs text-slate-400">
-                  Tailored curriculum generation, 30-day schedules, concept deep-dives, and adaptive knowledge testing.
+                  Personalized roadmap, daily schedules, verified references, coding practice & EduMind AI assistance.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Quick Stats Pill */}
-          <div className="flex items-center gap-3 bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-xs">
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase block">Active Track</span>
-              <span className="font-bold text-indigo-300">{currentUser?.career_goal || 'AI Engineer'}</span>
+          {/* Quick Stats & Controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center space-x-3 bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-2.5 text-xs">
+              <div className="flex items-center space-x-1.5 text-amber-400 font-bold">
+                <Flame className="w-4 h-4 fill-amber-400 text-amber-400 animate-pulse" />
+                <span>{progressSummary?.streak_days || 3} Day Streak</span>
+              </div>
+              <div className="h-4 w-px bg-slate-800"></div>
+              <div className="text-slate-300 font-semibold">
+                <span className="text-emerald-400 font-bold">{progressSummary?.progress_percentage || 35}%</span> Progress
+              </div>
             </div>
-            <div className="h-6 w-px bg-slate-800"></div>
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase block">Daily Goal</span>
-              <span className="font-bold text-emerald-400">{dailyHours} Hours / Day</span>
-            </div>
+
+            <button
+              onClick={() => setIsConfiguring(!isConfiguring)}
+              className="px-4 py-2.5 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 hover:border-indigo-500 text-xs font-semibold text-slate-200 transition"
+            >
+              {isConfiguring ? "View Roadmap" : "Customize Plan"}
+            </button>
           </div>
         </div>
 
-        {/* Sub-Navigation Tabs */}
-        <div className="flex space-x-2 mt-6 border-t border-slate-800/80 pt-4 overflow-x-auto">
-          <button
-            onClick={() => setActiveSubTab('study_plan')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
-              activeSubTab === 'study_plan'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>30-Day Study Plan</span>
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('curriculum')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
-              activeSubTab === 'curriculum'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>A* Prerequisite Roadmap</span>
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('tutor')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
-              activeSubTab === 'tutor'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Interactive Concept Explainer</span>
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('quiz')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
-              activeSubTab === 'quiz'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Adaptive Topic Quiz</span>
-          </button>
+        {/* Progress Bar */}
+        <div className="mt-5 pt-4 border-t border-slate-800/80 space-y-1.5">
+          <div className="flex justify-between text-xs text-slate-400 font-medium">
+            <span>
+              {progressSummary?.total_topics_count || 12} Topics • <strong className="text-white">{progressSummary?.completed_count || 4} Completed</strong> • {progressSummary?.remaining_count || 8} Remaining
+            </span>
+            <span className="text-indigo-300 font-bold">{progressSummary?.progress_percentage || 35}%</span>
+          </div>
+          <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+            <div
+              className="bg-gradient-to-r from-indigo-500 via-teal-400 to-emerald-400 h-full rounded-full transition-all duration-500"
+              style={{ width: `${progressSummary?.progress_percentage || 35}%` }}
+            ></div>
+          </div>
         </div>
       </div>
 
-      {/* Sub-Tab 1: 30-Day Personalized Study Schedule */}
-      {activeSubTab === 'study_plan' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Controls Panel */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5 h-fit">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Zap className="w-4 h-4 text-indigo-400" /> Plan Parameters
-            </h3>
-
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-400 block mb-1">Target Career Track</label>
-                <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 font-semibold">
-                  {currentUser?.career_goal || 'AI Engineer'}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1">Daily Study Commitment (Hours)</label>
-                <input
-                  type="range"
-                  min="1"
-                  max="6"
-                  step="0.5"
-                  value={dailyHours}
-                  onChange={(e) => setDailyHours(e.target.value)}
-                  className="w-full accent-indigo-500"
-                />
-                <div className="flex justify-between text-slate-400 mt-1">
-                  <span>1 hr</span>
-                  <span className="text-indigo-400 font-bold">{dailyHours} hrs / day</span>
-                  <span>6 hrs</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1">Preferred Study Slot</label>
-                <select
-                  value={preferredTime}
-                  onChange={(e) => setPreferredTime(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="Morning">Morning (6:00 AM - 9:00 AM)</option>
-                  <option value="Afternoon">Afternoon (1:00 PM - 4:00 PM)</option>
-                  <option value="Evening">Evening (6:00 PM - 9:00 PM)</option>
-                  <option value="Night">Late Night (9:00 PM - 12:00 AM)</option>
-                </select>
-              </div>
-
-              <button
-                onClick={handleGeneratePlan}
-                disabled={loading}
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30"
-              >
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                <span>Regenerate Schedule</span>
-              </button>
+      {/* 2. SUBJECT SELECTION & CUSTOMIZATION MODAL / PANEL */}
+      {isConfiguring && (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-fadeIn">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+            <div>
+              <h2 className="text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <Target className="w-5 h-5 text-indigo-400" /> Configure Your Learning Path
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Select any subject, set your current level, target goals, and available study hours.
+              </p>
             </div>
-
-            {studyPlanData && (
-              <div className="p-4 bg-indigo-950/20 border border-indigo-500/20 rounded-xl text-xs space-y-2">
-                <span className="text-[10px] uppercase font-bold text-indigo-400 block">Agent Analysis</span>
-                <p className="text-slate-300">
-                  Total curriculum commitment: <strong>{studyPlanData.total_estimated_study_hours || 60} hours</strong>.
-                </p>
-                <p className="text-slate-400">
-                  Weak topics automatically allocated priority revision blocks.
-                </p>
-              </div>
-            )}
+            <button
+              onClick={() => setIsConfiguring(false)}
+              className="text-xs text-slate-400 hover:text-white px-3 py-1 bg-slate-950 border border-slate-800 rounded-lg"
+            >
+              Close
+            </button>
           </div>
 
-          {/* Schedule Breakdown */}
-          <div className="lg:col-span-2 space-y-4">
-            {loading ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-indigo-400" />
-                <p className="text-sm">Optimizing 30-day curriculum with A* Search heuristics...</p>
-              </div>
-            ) : studyPlanData?.study_plan?.weeks ? (
-              studyPlanData.study_plan.weeks.map((week, wIdx) => (
-                <div key={wIdx} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                    <div className="flex items-center space-x-2">
-                      <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 font-bold text-xs">
-                        Week {week.week_number || wIdx + 1}
-                      </span>
-                      <h4 className="font-bold text-sm text-white">{week.theme || `Module ${wIdx + 1}`}</h4>
-                    </div>
-                    <span className="text-xs text-slate-400">{week.focus_area || 'Core Competencies'}</span>
-                  </div>
+          {/* Subject Picker */}
+          <div className="space-y-4">
+            <label className="text-xs font-bold text-white uppercase tracking-wider block">
+              1. What do you want to learn?
+            </label>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                    {week.days?.map((day, dIdx) => (
-                      <div key={dIdx} className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] uppercase font-bold text-indigo-400">Day {day.day}</span>
-                          <span className="text-[10px] text-slate-500">{day.duration_hours || dailyHours}h session</span>
-                        </div>
-                        <p className="text-xs font-semibold text-slate-200">{day.topic}</p>
-                        <p className="text-[11px] text-slate-400 line-clamp-2">{day.tasks || day.objective}</p>
+            {/* Category Pills & Search */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search programming languages, AI, web frameworks, tools..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="flex space-x-1.5 overflow-x-auto pb-1 sm:pb-0">
+                {["All", "Programming", "Web Development", "Data & AI", "Cloud & DevOps"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition ${
+                      categoryFilter === cat
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Subject Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 max-h-56 overflow-y-auto pr-1">
+              {filteredSubjects.map((s) => (
+                <div
+                  key={s.id}
+                  onClick={() => setSubject(s.id)}
+                  className={`p-3 rounded-2xl border cursor-pointer transition flex flex-col justify-between ${
+                    subject === s.id
+                      ? "bg-indigo-950/40 border-indigo-500 shadow-lg shadow-indigo-500/10"
+                      : "bg-slate-950 border-slate-800/80 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl">{s.icon || "📚"}</span>
+                    {subject === s.id && <CheckCircle className="w-4 h-4 text-indigo-400" />}
+                  </div>
+                  <div className="mt-2">
+                    <h4 className="text-xs font-bold text-white">{s.name}</h4>
+                    <span className="text-[10px] text-slate-500">{s.category}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Custom Subject Entry */}
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="text"
+                value={customSubjectInput}
+                onChange={(e) => setCustomSubjectInput(e.target.value)}
+                placeholder="Or enter custom subject (e.g. Rust, PyTorch, Kubernetes, Golang)..."
+                className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 flex-1 focus:outline-none focus:border-indigo-500"
+              />
+              <button
+                onClick={() => {
+                  if (customSubjectInput.trim()) {
+                    setSubject(customSubjectInput.trim());
+                    setCustomSubjectInput("");
+                  }
+                }}
+                disabled={!customSubjectInput.trim()}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs font-bold rounded-xl transition"
+              >
+                Set Custom
+              </button>
+            </div>
+          </div>
+
+          {/* Level, Goal & Time Configuration */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-4 border-t border-slate-800 text-xs">
+            {/* Level Selection */}
+            <div className="space-y-2">
+              <label className="text-slate-300 font-bold uppercase tracking-wider block">
+                2. Current Skill Level
+              </label>
+              <div className="space-y-1.5">
+                {["Complete Beginner", "Beginner", "Intermediate", "Advanced"].map((lvl) => (
+                  <div
+                    key={lvl}
+                    onClick={() => setLevel(lvl)}
+                    className={`p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+                      level === lvl
+                        ? "bg-indigo-950/40 border-indigo-500 text-white font-bold"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <span>{lvl}</span>
+                    {level === lvl && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Learning Goal */}
+            <div className="space-y-2">
+              <label className="text-slate-300 font-bold uppercase tracking-wider block">
+                3. Learning Goal
+              </label>
+              <select
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500"
+              >
+                <option value="Career">Career Track Transition</option>
+                <option value="Job Preparation">Job & Placement Preparation</option>
+                <option value="College/Academic">College / Academic Exam</option>
+                <option value="Internship">Internship Readiness</option>
+                <option value="Project Development">Project Development</option>
+                <option value="Interview Preparation">Interview Prep</option>
+                <option value="Certification">Industry Certification</option>
+              </select>
+
+              <div className="pt-2">
+                <label className="text-slate-400 block mb-1">Target Deadline</label>
+                <select
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="2 weeks">2 Weeks (Intensive)</option>
+                  <option value="4 weeks">1 Month (Standard)</option>
+                  <option value="6 weeks">6 Weeks (Comprehensive)</option>
+                  <option value="8 weeks">2 Months (Mastery)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Available Time */}
+            <div className="space-y-2">
+              <label className="text-slate-300 font-bold uppercase tracking-wider block">
+                4. Study Commitment
+              </label>
+              <select
+                value={dailyTime}
+                onChange={(e) => setDailyTime(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 mb-2"
+              >
+                <option value="30 minutes">30 Minutes / Day</option>
+                <option value="1 hour">1 Hour / Day</option>
+                <option value="2 hours">2 Hours / Day</option>
+                <option value="3 hours">3 Hours / Day</option>
+                <option value="4+ hours">4+ Hours / Day</option>
+              </select>
+
+              <label className="text-slate-400 block mb-1">Days Per Week</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[3, 5, 6, 7].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDaysPerWeek(d)}
+                    className={`py-2 rounded-xl text-xs font-bold border transition ${
+                      daysPerWeek === d
+                        ? "bg-indigo-600 text-white border-indigo-500"
+                        : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
+                    }`}
+                  >
+                    {d} Days
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-slate-800">
+            <button
+              onClick={() => handleGeneratePlan(subject)}
+              disabled={loading}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-2"
+            >
+              {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+              <span>Generate My Learning Plan</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3. MAIN WORKSPACE: DETAILED TOPIC VIEW OR ROADMAP */}
+      {activeTopic ? (
+        /* ========================================================================= */
+        /* DETAILED SUBJECT TOPIC LEARNING SCREEN (e.g. /learning/python/variables)  */
+        /* ========================================================================= */
+        <div className="space-y-6 animate-fadeIn">
+          {/* Top Bar with Back Button */}
+          <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+            <button
+              onClick={() => setActiveTopic(null)}
+              className="flex items-center space-x-2 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to {subject} Roadmap</span>
+            </button>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-slate-400">Current Topic:</span>
+              <span className="text-xs font-bold text-white bg-slate-950 border border-slate-800 px-3 py-1 rounded-xl">
+                {activeTopic}
+              </span>
+            </div>
+          </div>
+
+          {topicLoading || !topicContent ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3">
+              <RefreshCw className="w-8 h-8 animate-spin mx-auto text-indigo-400" />
+              <p className="text-sm font-semibold">Generating comprehensive pedagogical content for {activeTopic}...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left 2 Cols: Content, Examples, Practice, Quiz & Resources */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* 1. Simple Explanation */}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <BookMarked className="w-4 h-4 text-indigo-400" /> 1. Concept Intuition & Simple Explanation
+                    </h3>
+                    <span className="text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-full font-bold">
+                      {topicContent.level} Friendly
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line">
+                    {topicContent.explanation}
+                  </p>
+                </div>
+
+                {/* 2. Key Concepts */}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-slate-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 2. Core Takeaways & Concepts
+                  </h3>
+                  <ul className="space-y-2.5 text-xs text-slate-300">
+                    {topicContent.key_concepts?.map((c, idx) => (
+                      <li key={idx} className="flex items-start space-x-2.5 bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
+                        <span>{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* 3. Code Example & Walkthrough */}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <Code className="w-4 h-4 text-teal-400" /> 3. Code Example & Syntax
+                    </h3>
+                    <span className="text-[10px] text-slate-500">Runnable {subject} snippet</span>
+                  </div>
+                  <pre className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-emerald-300 text-xs font-mono overflow-x-auto leading-relaxed">
+                    <code>{topicContent.code_example}</code>
+                  </pre>
+                </div>
+
+                {/* 4. Hands-on Practice Questions */}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-slate-800">
+                    <Zap className="w-4 h-4 text-amber-400" /> 4. Hands-On Practice Questions
+                  </h3>
+                  <div className="space-y-2.5 text-xs">
+                    {topicContent.practice_questions?.map((pq, idx) => (
+                      <div key={idx} className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                        <span className="text-[10px] uppercase font-bold text-amber-400">Exercise {idx + 1}</span>
+                        <p className="text-slate-200">{pq}</p>
                       </div>
                     ))}
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400">
-                <p>Click "Regenerate Schedule" to construct your personalized study path.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* Sub-Tab 2: A* Prerequisite Roadmap */}
-      {activeSubTab === 'curriculum' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Layers className="w-4 h-4 text-indigo-400" /> Optimal Prerequisite Dependency Graph
-              </h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Computed via A* heuristic search over knowledge dependency lattices to minimize cognitive prerequisite friction.
-              </p>
-            </div>
-            <span className="text-xs bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-lg font-medium">
-              Heuristic: Manhatten Skill-Gap Delta
-            </span>
-          </div>
+                {/* 5. 5-Question Diagnostic Quiz */}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <HelpCircle className="w-4 h-4 text-indigo-400" /> 5. Quick Diagnostic Quiz (5 Questions)
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Test your understanding before marking this topic complete.</p>
+                    </div>
+                    {quizSubmitted && (
+                      <span className={`text-xs font-bold px-3 py-1 rounded-xl border ${
+                        quizScore >= 4 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                      }`}>
+                        Score: {quizScore} / {topicContent.quiz?.length || 5} ({Math.round((quizScore / (topicContent.quiz?.length || 5)) * 100)}%)
+                      </span>
+                    )}
+                  </div>
 
-          {/* Stepper Roadmap */}
-          <div className="relative pl-6 border-l-2 border-indigo-500/30 space-y-8 py-2">
-            {[
-              {
-                step: 1,
-                title: "Foundations: Python Mastery & Data Structures",
-                desc: "Variables, OOP, Generators, Time Complexity (O(n)), Arrays, Trees & Hash Maps.",
-                status: "Mastered",
-                duration: "10 Hours"
-              },
-              {
-                step: 2,
-                title: "Mathematical Foundations & Statistics",
-                desc: "Linear Algebra (Matrices, Eigenvectors), Multivariate Calculus, Probability Distributions, Bayes Theorem.",
-                status: "In Progress",
-                duration: "14 Hours"
-              },
-              {
-                step: 3,
-                title: "Machine Learning Algorithms & Optimization",
-                desc: "Regression, Decision Trees, SVM, Gradient Descent, Bias-Variance Regularization, Evaluation Metrics.",
-                status: "Next Priority",
-                duration: "18 Hours"
-              },
-              {
-                step: 4,
-                title: "Deep Learning, PyTorch & Transformers",
-                desc: "Backpropagation, CNNs, RNNs, Self-Attention Mechanism, HuggingFace Transformers, Fine-Tuning.",
-                status: "Upcoming",
-                duration: "20 Hours"
-              },
-              {
-                step: 5,
-                title: "AI Agent Architecture, RAG & LLM Orchestration",
-                desc: "LangChain, LangGraph, Vector Embeddings, ChromaDB/MongoDB Atlas, Tool Calling, MCP Protocol.",
-                status: "Capstone",
-                duration: "15 Hours"
-              }
-            ].map((node) => (
-              <div key={node.step} className="relative group">
-                <div className={`absolute -left-[31px] top-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  node.status === 'Mastered' ? 'bg-emerald-500 text-slate-950' :
-                  node.status === 'In Progress' ? 'bg-indigo-500 text-white animate-pulse' :
-                  'bg-slate-800 text-slate-400 border border-slate-700'
-                }`}>
-                  {node.step}
+                  <div className="space-y-4">
+                    {topicContent.quiz?.map((q, qIdx) => (
+                      <div key={qIdx} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                        <p className="text-xs font-semibold text-white">
+                          <span className="text-indigo-400 mr-1.5 font-bold">Q{qIdx + 1}.</span>
+                          {q.question}
+                        </p>
+
+                        <div className="space-y-2">
+                          {q.options?.map((opt, optIdx) => {
+                            let btnStyle = "bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500/50";
+                            if (quizSubmitted) {
+                              if (optIdx === q.answer_index) {
+                                btnStyle = "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold";
+                              } else if (userQuizAnswers[qIdx] === optIdx) {
+                                btnStyle = "bg-rose-500/20 border-rose-500 text-rose-300 font-semibold";
+                              } else {
+                                btnStyle = "bg-slate-950 border-slate-900 text-slate-600 opacity-60";
+                              }
+                            } else if (userQuizAnswers[qIdx] === optIdx) {
+                              btnStyle = "bg-indigo-600/30 border-indigo-500 text-white font-bold";
+                            }
+
+                            return (
+                              <button
+                                key={optIdx}
+                                disabled={quizSubmitted}
+                                onClick={() => handleSelectQuizOption(qIdx, optIdx)}
+                                className={`w-full text-left p-3 rounded-xl border text-xs transition flex items-center justify-between ${btnStyle}`}
+                              >
+                                <span>{opt}</span>
+                                {quizSubmitted && optIdx === q.answer_index && (
+                                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {quizSubmitted && (
+                          <div className="p-3 bg-slate-900 rounded-xl text-[11px] text-slate-400 border border-slate-800">
+                            <strong className="text-indigo-300">Explanation: </strong> {q.explanation}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {!quizSubmitted ? (
+                    <div className="flex justify-end pt-2">
+                      <button
+                        onClick={handleSubmitQuiz}
+                        disabled={Object.keys(userQuizAnswers).length === 0}
+                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition"
+                      >
+                        Submit Quiz Answers
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center pt-2">
+                      <button
+                        onClick={() => {
+                          setUserQuizAnswers({});
+                          setQuizSubmitted(false);
+                          setQuizScore(0);
+                        }}
+                        className="text-xs text-slate-400 hover:text-white"
+                      >
+                        Retake Quiz
+                      </button>
+                      <button
+                        onClick={handleCompleteTopic}
+                        className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Complete Topic & Save Progress</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 group-hover:border-indigo-500/50 transition space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-white">{node.title}</h4>
-                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
-                      node.status === 'Mastered' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' :
-                      node.status === 'In Progress' ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/30' :
-                      'bg-slate-800 text-slate-400'
-                    }`}>
-                      {node.status}
-                    </span>
+                {/* 6. Common Mistakes & Mini Task */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Common Mistakes */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+                    <h3 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4" /> 6. Common Beginner Mistakes
+                    </h3>
+                    <div className="space-y-2 text-xs text-slate-300">
+                      {topicContent.common_mistakes?.map((m, idx) => (
+                        <div key={idx} className="p-2.5 bg-slate-950 border border-rose-500/20 rounded-xl">
+                          {m}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-400 leading-relaxed">{node.desc}</p>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-900">
-                    <span>Estimated Effort: {node.duration}</span>
+
+                  {/* Mini Task */}
+                  <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center gap-2">
+                        <Target className="w-4 h-4 text-teal-400" /> 7. Practical Mini Task
+                      </h3>
+                      <p className="text-xs text-slate-200 mt-2 leading-relaxed">
+                        {topicContent.mini_task}
+                      </p>
+                    </div>
                     <button
-                      onClick={() => {
-                        setTutorQuery(`Explain the key concepts and code patterns for ${node.title}`);
-                        setActiveSubTab('tutor');
-                      }}
-                      className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
+                      onClick={() => handleAskEduMind(`Help me plan and write the solution for this mini task: ${topicContent.mini_task}`)}
+                      className="mt-3 w-full py-2 bg-slate-950 border border-teal-500/30 hover:border-teal-500 text-teal-300 text-xs font-semibold rounded-xl transition text-center"
                     >
-                      <span>Study Topic</span>
-                      <ChevronRight className="w-3 h-3" />
+                      Ask EduMind for Hints →
                     </button>
                   </div>
                 </div>
+
+                {/* 8. VERIFIED EXTERNAL LEARNING RESOURCES */}
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <ExternalLink className="w-4 h-4 text-indigo-400" /> 8. Recommended External Resources & Docs
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Verified official documentation, tutorials, and interactive practice.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {topicContent.resources?.map((res, idx) => (
+                      <div key={idx} className="p-4 bg-slate-950 border border-slate-800 hover:border-indigo-500/50 rounded-2xl transition flex flex-col justify-between group space-y-2">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                              {res.type}
+                            </span>
+                            <span className="text-[10px] text-slate-500">{res.provider}</span>
+                          </div>
+                          <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition">{res.title}</h4>
+                          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{res.description}</p>
+                        </div>
+
+                        <a
+                          href={res.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="pt-2 flex items-center justify-between text-xs text-indigo-400 hover:text-indigo-300 font-bold border-t border-slate-900"
+                        >
+                          <span>Open Resource</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Complete Topic Action Button */}
+                <div className="p-5 bg-gradient-to-r from-indigo-950/40 via-slate-900 to-emerald-950/40 border border-indigo-500/30 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                  <div className="text-xs">
+                    <span className="font-bold text-white block text-sm">Finished studying {activeTopic}?</span>
+                    <span className="text-slate-400">Save progress to your MongoDB profile and unlock the next topic in the roadmap.</span>
+                  </div>
+                  <button
+                    onClick={handleCompleteTopic}
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center gap-2 flex-shrink-0"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Mark as Completed</span>
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Sub-Tab 3: Interactive Concept Explainer / Tutor */}
-      {activeSubTab === 'tutor' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-          <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-400" /> Pedagogical Concept Tutor
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Ask about any algorithm, mathematical concept, or code implementation. The tutor uses cognitive scaffolding to explain step-by-step.
-            </p>
-          </div>
+              {/* Right Col: Embedded EduMind AI Learning Assistant */}
+              <div className="space-y-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4 sticky top-20">
+                  <div className="flex items-center space-x-2.5 pb-3 border-b border-slate-800">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-teal-400 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-slate-950" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">EduMind AI Assistant</h3>
+                      <p className="text-[10px] text-teal-400">Embedded Tutor for {activeTopic}</p>
+                    </div>
+                  </div>
 
-          {/* Search / Input Box */}
-          <form onSubmit={handleAskTutor} className="space-y-3">
-            <div className="relative">
-              <input
-                type="text"
-                value={tutorQuery}
-                onChange={(e) => setTutorQuery(e.target.value)}
-                placeholder="e.g. How does A* Search work with Manhattan distance vs Euclidean distance?"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 pr-28"
-              />
-              <button
-                type="submit"
-                disabled={tutorLoading || !tutorQuery.trim()}
-                className="absolute right-2 top-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition disabled:opacity-50"
-              >
-                {tutorLoading ? 'Explaining...' : 'Explain'}
-              </button>
-            </div>
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-1.5 text-[10px]">
+                    {[
+                      { label: "Explain Simpler", action: "explain_simpler" },
+                      { label: "Give Example", action: "give_example" },
+                      { label: "Show Code", action: "show_code" },
+                      { label: "Give Practice", action: "give_practice" },
+                      { label: "Quiz Me", action: "quiz_me" },
+                      { label: "Summarize", action: "summarize" }
+                    ].map((btn, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleAskEduMind(null, btn.action)}
+                        disabled={edumindLoading}
+                        className="px-2.5 py-1 bg-slate-950 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-indigo-300 rounded-lg transition disabled:opacity-50"
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
 
-            {/* Quick Topic Chips */}
-            <div className="flex flex-wrap gap-2 text-[11px]">
-              <span className="text-slate-500 py-1">Quick prompts:</span>
-              {[
-                "Bayesian Networks & Conditional Probability",
-                "Forward vs Backward Chaining Reasoning",
-                "A* Search Admissible Heuristics",
-                "Self-Attention Mechanism in Transformers",
-                "RAG Vector Chunking Strategies"
-              ].map((chip, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setTutorQuery(chip);
-                  }}
-                  className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-indigo-300 transition"
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
-          </form>
+                  {/* Chat Conversation Thread */}
+                  <div className="h-96 overflow-y-auto space-y-3 p-3 bg-slate-950 rounded-2xl border border-slate-800/80 text-xs">
+                    {edumindHistory.length === 0 ? (
+                      <div className="text-center text-slate-500 py-12 space-y-2">
+                        <MessageSquare className="w-8 h-8 mx-auto text-slate-700" />
+                        <p className="text-xs font-semibold text-slate-400">Ask EduMind anything about {activeTopic}!</p>
+                        <p className="text-[11px] text-slate-600">e.g. "Explain with an analogy", "Why do we need this?", or "Give me code examples".</p>
+                      </div>
+                    ) : (
+                      edumindHistory.map((msg, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-3 rounded-xl leading-relaxed whitespace-pre-line ${
+                            msg.sender === 'user'
+                              ? 'bg-indigo-600/20 border border-indigo-500/40 text-indigo-200 ml-4'
+                              : 'bg-slate-900 border border-slate-800 text-slate-200 mr-2'
+                          }`}
+                        >
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                            {msg.sender === 'user' ? 'You' : 'EduMind AI Tutor'}
+                          </span>
+                          {msg.text}
+                        </div>
+                      ))
+                    )}
+                    {edumindLoading && (
+                      <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-400" />
+                        <span>EduMind is thinking...</span>
+                      </div>
+                    )}
+                  </div>
 
-          {/* Response Box */}
-          {tutorResponse && (
-            <div className="p-5 rounded-xl bg-slate-950 border border-indigo-500/30 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" /> Tutor Explanation
-                </span>
-                <span className="text-[10px] text-slate-500">Grounded Pedagogical Model</span>
-              </div>
-              <div className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed space-y-2">
-                {tutorResponse}
+                  {/* Input Form */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleAskEduMind();
+                    }}
+                    className="flex items-center gap-2 pt-1"
+                  >
+                    <input
+                      type="text"
+                      value={edumindQuery}
+                      onChange={(e) => setEdumindQuery(e.target.value)}
+                      placeholder={`Ask anything about ${activeTopic}...`}
+                      className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 flex-1 focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={edumindLoading || !edumindQuery.trim()}
+                      className="p-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl transition"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           )}
         </div>
-      )}
-
-      {/* Sub-Tab 4: Adaptive Topic Quiz */}
-      {activeSubTab === 'quiz' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      ) : (
+        /* ========================================================================= */
+        /* ROADMAP & SCHEDULE VIEW (Default)                                         */
+        /* ========================================================================= */
+        <div className="space-y-6">
+          {/* Active Plan Overview & Action Ribbon */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-indigo-400" /> Adaptive Knowledge Verification Quiz
-              </h3>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Layers className="w-5 h-5 text-indigo-400" /> {subject} Learning Roadmap ({level})
+              </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Fast diagnostic checks to assess conceptual retention and pinpoint knowledge gaps.
+                Goal: <strong className="text-indigo-300">{goal}</strong> • Commitment: <strong>{dailyTime}/day</strong> ({daysPerWeek} days/week) • Target: <strong>{deadline}</strong>
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <select
-                value={quizTopic}
-                onChange={(e) => {
-                  setQuizTopic(e.target.value);
-                  setQuizQuestionIndex(0);
-                  setSelectedOption(null);
-                  setQuizSubmitted(false);
-                }}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+              <button
+                onClick={() => setIsConfiguring(true)}
+                className="px-4 py-2 bg-slate-950 border border-slate-800 hover:border-indigo-500 text-slate-200 text-xs font-semibold rounded-xl transition"
               >
-                <option value="Machine Learning">Machine Learning</option>
-                <option value="Python">Python Programming</option>
-              </select>
+                Change Subject
+              </button>
+              <button
+                onClick={() => handleGeneratePlan(subject)}
+                disabled={loading}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Regenerate Plan</span>
+              </button>
             </div>
           </div>
 
-          {/* Active Question Box */}
-          <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-indigo-400 uppercase">
-                Question {quizQuestionIndex + 1} of {currentQuizList.length}
-              </span>
-              <span className="text-xs text-slate-400">Score: {quizScore} / {currentQuizList.length}</span>
+          {/* Weekly Modules & Topic Cards */}
+          {loading ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3">
+              <RefreshCw className="w-8 h-8 animate-spin mx-auto text-indigo-400" />
+              <p className="text-sm font-semibold">Generating your personalized {subject} schedule with A* heuristic sequencing...</p>
             </div>
+          ) : planData?.weeks ? (
+            <div className="space-y-5">
+              {planData.weeks.map((week, wIdx) => (
+                <div key={wIdx} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <div className="flex items-center space-x-3">
+                      <span className="px-3 py-1 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 font-bold text-xs">
+                        Week {week.week || wIdx + 1}
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-sm text-white">{week.title}</h3>
+                        <p className="text-[11px] text-slate-400">{week.focus}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-slate-500">{week.topics?.length} Topics</span>
+                  </div>
 
-            <p className="text-sm font-semibold text-white leading-relaxed">{currentQuiz.q}</p>
+                  {/* Topic Cards Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+                    {week.topics?.map((top, tIdx) => {
+                      const isDone = progressSummary?.completed_topics?.some(
+                        ct => ct.toLowerCase().includes(top.title.toLowerCase()) || top.title.toLowerCase().includes(ct.toLowerCase())
+                      );
 
-            <div className="space-y-2.5 pt-2">
-              {currentQuiz.options.map((opt, idx) => {
-                let btnStyle = "bg-slate-900 border-slate-800 text-slate-300 hover:border-indigo-500/50";
-                if (quizSubmitted) {
-                  if (idx === currentQuiz.answer) {
-                    btnStyle = "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold";
-                  } else if (selectedOption === idx) {
-                    btnStyle = "bg-rose-500/20 border-rose-500 text-rose-300 font-semibold";
-                  } else {
-                    btnStyle = "bg-slate-950 border-slate-900 text-slate-600 opacity-60";
-                  }
-                }
-                return (
-                  <button
-                    key={idx}
-                    disabled={quizSubmitted}
-                    onClick={() => handleAnswerOption(idx)}
-                    className={`w-full text-left p-3.5 rounded-xl border text-xs transition flex items-center justify-between ${btnStyle}`}
-                  >
-                    <span>{opt}</span>
-                    {quizSubmitted && idx === currentQuiz.answer && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                    )}
-                  </button>
-                );
-              })}
+                      return (
+                        <div
+                          key={tIdx}
+                          onClick={() => handleOpenTopic(top)}
+                          className={`p-4 rounded-2xl border cursor-pointer transition flex flex-col justify-between group space-y-2.5 ${
+                            isDone
+                              ? "bg-emerald-950/20 border-emerald-500/40 hover:border-emerald-500"
+                              : "bg-slate-950 border-slate-800/80 hover:border-indigo-500/60"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <span className="text-[10px] uppercase font-bold text-indigo-400">
+                              Module {wIdx + 1}.{tIdx + 1}
+                            </span>
+                            {isDone ? (
+                              <span className="flex items-center space-x-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                                <Check className="w-3 h-3" />
+                                <span>Completed</span>
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> {top.estimated_min || 45}m
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition leading-snug">
+                            {top.title}
+                          </h4>
+
+                          <div className="flex items-center justify-between text-[11px] pt-1 text-slate-400 group-hover:text-indigo-400">
+                            <span>{isDone ? "Review Concept" : "Start Learning"}</span>
+                            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Explanation & Next */}
-            {quizSubmitted && (
-              <div className="pt-4 border-t border-slate-800 space-y-3">
-                <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300">
-                  <span className="font-bold text-indigo-400 block mb-1">Pedagogical Rationale:</span>
-                  {currentQuiz.explanation}
-                </div>
-
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleNextQuiz}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5"
-                  >
-                    <span>{quizQuestionIndex + 1 < currentQuizList.length ? 'Next Question' : 'Restart Quiz'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          ) : (
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-slate-400">
+              <p>Click "Generate Plan" to construct your tailored learning roadmap.</p>
+            </div>
+          )}
         </div>
       )}
     </div>
